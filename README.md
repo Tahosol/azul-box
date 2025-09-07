@@ -6,6 +6,12 @@
 
 <noscript><a href="https://liberapay.com/Tahoso/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a></noscript>
 
+## Status
+
+**IMPORTANT: I won't be building new releases anymore.**
+
+This project is in a maintenance mode-ish state. I'll fix any app-breaking bugs that appear from time to time. PRs are still welcome for features, bug fixes, etc. I may still add features when I feel like it. The reason for this status is that the software is completely functional for my use case, and the code is kinda sucky, making me feel lazy.
+
 ## Feature
 
 - Download music from link with metadata/cover embedded with synced lyric(lyric do not work for WAV)
