@@ -21,6 +21,8 @@ pub struct VideoDownload {
     pub sub_lang: String,
     pub auto_sub: bool,
     pub config_path: PathBuf,
+    pub cookies: Option<String>,
+    pub use_cookies: bool,
 }
 
 use crate::ui::shares::config;
@@ -48,6 +50,8 @@ impl Default for VideoDownload {
             sub_lang: configs.universal.language,
             auto_sub: configs.video_dl.auto_gen_sub,
             config_path: path,
+            cookies: configs.universal.cookies,
+            use_cookies: configs.universal.use_cookies,
         }
     }
 }
@@ -123,6 +127,19 @@ impl VideoDownload {
     pub fn ui(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.menu_button("Setting", |ui| {
+                let check = ui.checkbox(&mut self.use_cookies, "Use cookies");
+                if check.changed() {
+                    match config::modifier_config(&self.config_path, |cfg| {
+                        cfg.universal.use_cookies = self.use_cookies
+                    }) {
+                        Ok(_) => {
+                            println!("video_dl: Changed use_cookies")
+                        }
+                        Err(e) => {
+                            println!("video_dl: Fail change use_cookies {e}")
+                        }
+                    }
+                }
                 ui.menu_button("Format", |ui| {
                     self.format_button(ui, "MKV", 1);
                     self.format_button(ui, "MP4", 2);
@@ -233,10 +250,14 @@ impl VideoDownload {
                     let subtile = self.subtitle;
                     let lang = self.sub_lang.clone();
                     let auto_gen = self.auto_sub;
+                    let cook = self.cookies.clone();
+                    let use_cook = self.use_cookies;
 
                     tokio::task::spawn(async move {
-                        let status =
-                            download(link, directory, format, frags, subtile, &lang, auto_gen);
+                        let status = download(
+                            link, directory, format, frags, subtile, &lang, auto_gen, cook,
+                            use_cook,
+                        );
                         progress.store(status, Ordering::Relaxed);
                         if status == 2 {
                             done_sound();
@@ -263,10 +284,18 @@ fn download(
     sub: bool,
     lang: &str,
     auto_gen: bool,
+    cookies: Option<String>,
+    use_cookies: bool,
 ) -> i8 {
     let n = frag.to_string().to_owned();
 
     let mut yt = Command::new("yt-dlp");
+    if let Some(cookie) = cookies
+        && use_cookies
+    {
+        yt.arg("--cookies").arg(cookie);
+    }
+
     yt.arg("--concurrent-fragments")
         .arg(n)
         .arg("--embed-thumbnail")

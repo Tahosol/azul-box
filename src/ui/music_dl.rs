@@ -25,6 +25,8 @@ pub struct MusicDownload {
     pub musicbrainz: bool,
     pub lrclib: bool,
     pub config_path: PathBuf,
+    pub cookies: Option<String>,
+    pub use_cookies: bool,
 }
 
 use crate::ui::shares::config;
@@ -54,7 +56,9 @@ impl Default for MusicDownload {
             sim_rate: configs.music_dl.threshold,
             musicbrainz: configs.music_dl.musicbrainz,
             lrclib: configs.music_dl.liblrc,
+            cookies: configs.universal.cookies,
             config_path: path,
+            use_cookies: configs.universal.use_cookies,
         }
     }
 }
@@ -169,6 +173,19 @@ impl MusicDownload {
         }
         ui.horizontal(|ui| {
             ui.menu_button("Setting", |ui| {
+                let check = ui.checkbox(&mut self.use_cookies, "Use cookies");
+                if check.changed() {
+                    match config::modifier_config(&self.config_path, |cfg| {
+                        cfg.universal.use_cookies = self.use_cookies
+                    }) {
+                        Ok(_) => {
+                            println!("music_dl: Changed use_cookies")
+                        }
+                        Err(e) => {
+                            println!("music_dl: Fail change use_cookies {e}")
+                        }
+                    }
+                }
                 ui.menu_button("Format", |ui| {
                     self.format_button(ui, "OPUS", 1);
                     self.format_button(ui, "FLAC", 2);
@@ -302,11 +319,13 @@ impl MusicDownload {
                     let brain = self.musicbrainz;
                     let sim = self.sim_rate;
                     let lrclib = self.lrclib;
+                    let cook = self.cookies.clone();
+                    let use_cook = self.use_cookies;
 
                     tokio::task::spawn(async move {
                         let status = download(
                             link, directory, format, lyrics, frags, lang_code, auto, sim, brain,
-                            lrclib,
+                            lrclib, cook, use_cook,
                         );
                         progress.store(status, Ordering::Relaxed);
                         if status == 2 {
@@ -337,6 +356,8 @@ fn download(
     sim_rate: i8,
     musicbrainz: bool,
     lrclib: bool,
+    cookies: Option<String>,
+    use_cookies: bool,
 ) -> i8 {
     if format == 1 {
         format_dl(
@@ -350,6 +371,8 @@ fn download(
             sim_rate,
             musicbrainz,
             lrclib,
+            cookies,
+            use_cookies,
         )
     } else if format == 2 {
         format_dl(
@@ -363,6 +386,8 @@ fn download(
             sim_rate,
             musicbrainz,
             lrclib,
+            cookies,
+            use_cookies,
         )
     } else if format == 3 {
         format_dl(
@@ -376,6 +401,8 @@ fn download(
             sim_rate,
             musicbrainz,
             lrclib,
+            cookies,
+            use_cookies,
         )
     } else if format == 4 {
         format_dl(
@@ -389,6 +416,8 @@ fn download(
             sim_rate,
             musicbrainz,
             lrclib,
+            cookies,
+            use_cookies,
         )
     } else if format == 5 {
         format_dl(
@@ -402,6 +431,8 @@ fn download(
             sim_rate,
             musicbrainz,
             lrclib,
+            cookies,
+            use_cookies,
         )
     } else {
         3
@@ -419,6 +450,8 @@ fn format_dl(
     sim_rate: i8,
     musicbrainz: bool,
     lrclib: bool,
+    cookies: Option<String>,
+    use_cookies: bool,
 ) -> i8 {
     let n = frags.to_string();
     println!("{n}");
@@ -426,6 +459,13 @@ fn format_dl(
     let files: Vec<&str>;
 
     let mut yt = Command::new("yt-dlp");
+
+    if let Some(cookie) = cookies
+        && use_cookies
+    {
+        yt.arg("--cookies").arg(cookie);
+    }
+
     yt.arg("--concurrent-fragments")
         .arg(&n)
         .arg("-i")

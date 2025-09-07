@@ -62,6 +62,8 @@ pub struct Config {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Universal {
     pub language: String,
+    pub use_cookies: bool,
+    pub cookies: Option<String>,
 }
 #[derive(Debug, Serialize, Deserialize)]
 pub struct VideoDl {
@@ -85,6 +87,8 @@ impl Default for Config {
         Self {
             universal: Universal {
                 language: "en".to_string(),
+                use_cookies: false,
+                cookies: None,
             },
             video_dl: VideoDl {
                 format: 1,

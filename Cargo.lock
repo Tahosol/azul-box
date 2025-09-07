@@ -467,7 +467,7 @@ checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
 name = "azul-box"
-version = "0.1.71"
+version = "0.1.72"
 dependencies = [
  "dirs",
  "eframe",
