@@ -59,20 +59,22 @@ sudo dnf install ffmpeg-free yt-dlp python3-mutagen
 
 ## Installation
 
-Use this follow command to build then install the app. You will still need to install dependencies before run the install script.
+Please use the `install.sh` script in the source code to install instead of the binary in the release, which is outdated.
 
-### Debian based distro
+~~Use this follow command to build then install the app. You will still need to install dependencies before run the install script.~~
 
-- Download the deb file from [release](https://github.com/musdx/azul-box/releases)
-- Install it via apt
-- Enjoy!!!
+~~### Debian based distro~~
 
-### Any other distro
+~~- Download the deb file from [release](https://github.com/musdx/azul-box/releases)~~
+~~- Install it via apt~~
+~~- Enjoy!!!~~
 
-- Download the bin.zip file from [release](https://github.com/musdx/azul-box/releases)
-- Unzip it
-- Run the install.sh file init
-- Enjoy!!!
+~~### Any other distro~~
+
+~~- Download the bin.zip file from [release](https://github.com/musdx/azul-box/releases)~~
+~~- Unzip it~~
+~~- Run the install.sh file init~~
+~~- Enjoy!!!~~
 
 ## Uninstallation
 
