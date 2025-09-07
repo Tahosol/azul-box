@@ -4,7 +4,7 @@
 
 <img src="./assets/logo.png" width="200"></img>
 
-<noscript><a href="https://liberapay.com/musdx/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a></noscript>
+<noscript><a href="https://liberapay.com/Tahoso/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a></noscript>
 
 ## Feature
 
