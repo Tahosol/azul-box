@@ -211,7 +211,6 @@ impl MusicDownload {
                                 }
                             }
                         });
-                        // self.lang_choice(ui);
                         let lang_in = self.sub_lang.clone();
                         self.sub_lang = LangThing::lang_chooser(ui, lang_in);
                         self.auto_on(ui);
@@ -304,7 +303,7 @@ impl MusicDownload {
 
             if self.status.load(Ordering::Relaxed) != 1 {
                 if ui.button("Download").clicked() {
-                    button_sound();
+                    let _ = button_sound();
 
                     self.start_download_status();
 
@@ -329,15 +328,15 @@ impl MusicDownload {
                         );
                         progress.store(status, Ordering::Relaxed);
                         if status == 2 {
-                            done_sound();
+                            let _ = done_sound();
                         } else {
-                            fail_sound();
+                            let _ = fail_sound();
                         }
                     });
                 }
             } else if self.status.load(Ordering::Relaxed) == 1 {
                 if ui.button("Cancel").clicked() {
-                    button_sound();
+                    let _ = button_sound();
                     let _ = Command::new("pkill").arg("yt-dlp").output();
                 }
             }
@@ -535,7 +534,7 @@ fn format_dl(
     } else {
         yt.arg(&link);
         let output = yt.output().expect("Failed to execute command");
-        let log = String::from_utf8(output.stdout).unwrap_or_else(|_| "Life suck".to_string());
+        let log = String::from_utf8(output.stdout).unwrap_or_else(|_| "Fail".to_string());
         println!("{log}");
 
         if musicbrainz {

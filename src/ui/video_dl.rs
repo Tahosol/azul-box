@@ -239,7 +239,7 @@ impl VideoDownload {
 
             if self.status.load(Ordering::Relaxed) != 1 {
                 if ui.button("Download").clicked() {
-                    button_sound();
+                    let _ = button_sound();
                     self.start_download_status();
 
                     let link = self.link.clone();
@@ -260,15 +260,15 @@ impl VideoDownload {
                         );
                         progress.store(status, Ordering::Relaxed);
                         if status == 2 {
-                            done_sound();
+                            let _ = done_sound();
                         } else {
-                            fail_sound();
+                            let _ = fail_sound();
                         }
                     });
                 }
             } else if self.status.load(Ordering::Relaxed) == 1 {
                 if ui.button("Cancel").clicked() {
-                    button_sound();
+                    let _ = button_sound();
                     let _ = Command::new("pkill").arg("yt-dlp").output();
                 }
             }

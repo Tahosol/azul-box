@@ -83,7 +83,7 @@ impl PinterstDownload {
             };
 
             if ui.button("Download").clicked() {
-                button_sound();
+                let _ = button_sound();
                 if !self.status_pending.load(Ordering::Relaxed) {
                     self.reset_download_status();
                     self.start_download_status();
@@ -98,7 +98,7 @@ impl PinterstDownload {
                         download(link, directory, videoornot);
                         complete.store(true, Ordering::Relaxed);
                         doing.store(false, Ordering::Relaxed);
-                        done_sound();
+                        let _ = done_sound();
                     });
                 }
             }
