@@ -67,17 +67,17 @@ impl eframe::App for MainApp {
             .text_styles
             .get_mut(&egui::TextStyle::Heading)
             .unwrap()
-            .size = 26.0;
+            .size = 30.0;
         style
             .text_styles
             .get_mut(&egui::TextStyle::Body)
             .unwrap()
-            .size = 20.0;
+            .size = 24.0;
         style
             .text_styles
             .get_mut(&egui::TextStyle::Button)
             .unwrap()
-            .size = 20.0;
+            .size = 24.0;
 
         ctx.set_style(style);
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
