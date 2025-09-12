@@ -520,7 +520,7 @@ fn format_dl(
             lyrics_work(&filename, &music_file, format_name, &directory);
             let music_file = Path::new(&music_file);
             if musicbrainz {
-                musicbrain_work(&music_file, sim_rate);
+                let _ = musicbrain_work(&music_file, sim_rate);
             }
             if lrclib {
                 lrclib_fetch(&music_file, &lang_code);
@@ -550,7 +550,7 @@ fn format_dl(
                 let music_file = format!("{}/{}", &directory, &item[0..item.len() - 1].to_string());
                 println!("music dir:{music_file}");
                 let music_file = Path::new(&music_file);
-                musicbrain_work(&music_file, sim_rate);
+                let _ = musicbrain_work(&music_file, sim_rate);
             }
         }
 
