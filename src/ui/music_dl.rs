@@ -523,7 +523,7 @@ fn format_dl(
                 let _ = musicbrain_work(&music_file, sim_rate);
             }
             if lrclib {
-                lrclib_fetch(&music_file, &lang_code);
+                let _ = lrclib_fetch(&music_file, &lang_code);
             }
         }
         status = if log.contains("[EmbedThumbnail]") {
