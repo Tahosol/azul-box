@@ -54,7 +54,10 @@ fn fetch_musicbrainzapi(
     let agent: Agent = config.into();
     let resp = agent
         .get(q)
-        .header("User-Agent", "Azulbox (https://github.com/musdx/azul-box)")
+        .header(
+            "User-Agent",
+            "Azulbox (https://github.com/tahosol/azul-box)",
+        )
         .call()?
         .body_mut()
         .read_json::<ApiResponseMusicBrainz>()?;
@@ -69,7 +72,10 @@ fn fetch_musicbrainzapi(
         );
         let mut re_for_id = agent
             .get(query_with_id)
-            .header("User-Agent", "Azulbox (https://github.com/musdx/azul-box)")
+            .header(
+                "User-Agent",
+                "Azulbox (https://github.com/tahosol/azul-box)",
+            )
             .call()?;
         let data = re_for_id.body_mut().read_json::<IDAPI>()?;
         if let Some(artists) = data.artist_credit {
@@ -98,16 +104,21 @@ fn fetch_musicbrainzapi(
                 println!("{que}");
                 let mut res = agent
                     .get(que)
-                    .header("User-Agent", "Azulbox (https://github.com/musdx/azul-box)")
+                    .header(
+                        "User-Agent",
+                        "Azulbox (https://github.com/tahosol/azul-box)",
+                    )
                     .call()?;
                 let callfocover = res.body_mut().read_json::<ApiResponseCover>()?;
                 if let Some(images) = callfocover.images {
                     println!("{}", images[0].image);
                     let img_req = agent
                         .get(&images[0].image)
-                        .header("User-Agent", "Azulbox (https://github.com/musdx/azul-box)")
-                        .call()
-                        .expect("did load pic");
+                        .header(
+                            "User-Agent",
+                            "Azulbox (https://github.com/tahosol/azul-box)",
+                        )
+                        .call()?;
                     let data: Vec<u8> = img_req.into_body().read_to_vec()?;
 
                     let picture = Picture::new_unchecked(
@@ -126,8 +137,7 @@ fn fetch_musicbrainzapi(
         }
     }
     println!("Work");
-    tag.save_to_path(opt, WriteOptions::default())
-        .expect("ERROR: Failed to write the tag!");
+    tag.save_to_path(opt, WriteOptions::default())?;
     Ok(())
 }
 use serde::Deserialize;

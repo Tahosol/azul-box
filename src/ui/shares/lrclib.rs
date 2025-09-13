@@ -57,7 +57,10 @@ struct ApiResponse {
 
 fn fetch(query: &str) -> Result<String, Box<dyn Error>> {
     let lyr = ureq::get(query)
-        .header("User-Agent", "Azulbox (https://github.com/musdx/azul-box)")
+        .header(
+            "User-Agent",
+            "Azulbox (https://github.com/tahosol/azul-box)",
+        )
         .call()?
         .body_mut()
         .read_json::<ApiResponse>()?;
