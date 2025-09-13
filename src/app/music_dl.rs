@@ -1,7 +1,7 @@
-use crate::ui::shares::lang::LangThing;
-use crate::ui::shares::lrclib::lrclib_fetch;
-use crate::ui::shares::musicbrainz::musicbrain_work;
-use crate::ui::shares::notify::{
+use crate::app::shares::lang::LangThing;
+use crate::app::shares::lrclib::lrclib_fetch;
+use crate::app::shares::musicbrainz::musicbrain_work;
+use crate::app::shares::notify::{
     button_sound, done_sound, fail_sound, notification_done, notification_fail,
 };
 use eframe::egui::{self, Color32};
@@ -29,7 +29,7 @@ pub struct MusicDownload {
     pub use_cookies: bool,
 }
 
-use crate::ui::shares::config;
+use crate::app::shares::config;
 
 impl Default for MusicDownload {
     fn default() -> Self {

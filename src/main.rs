@@ -1,8 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-mod ui;
+mod app;
 
-use crate::ui::shares::config::config_file_default;
+use crate::app::shares::config::config_file_default;
 use eframe::egui::{self, IconData, RichText, global_theme_preference_buttons};
 #[tokio::main]
 async fn main() -> eframe::Result {
@@ -27,11 +27,11 @@ async fn main() -> eframe::Result {
 }
 
 struct MainApp {
-    music_download: ui::music_dl::MusicDownload,
-    video_download: ui::video_dl::VideoDownload,
-    pinterest_download: ui::pinterest::PinterstDownload,
-    image_convert: ui::img_convert::ImgConvert,
-    video_convert: ui::video_convert::VideoConvert,
+    music_download: app::music_dl::MusicDownload,
+    video_download: app::video_dl::VideoDownload,
+    pinterest_download: app::pinterest::PinterstDownload,
+    image_convert: app::img_convert::ImgConvert,
+    video_convert: app::video_convert::VideoConvert,
     run_on_start: bool,
     yt: bool,
     ffmpeg: bool,
@@ -41,11 +41,11 @@ struct MainApp {
 impl Default for MainApp {
     fn default() -> Self {
         Self {
-            music_download: ui::music_dl::MusicDownload::default(),
-            video_download: ui::video_dl::VideoDownload::default(),
-            pinterest_download: ui::pinterest::PinterstDownload::default(),
-            image_convert: ui::img_convert::ImgConvert::default(),
-            video_convert: ui::video_convert::VideoConvert::default(),
+            music_download: app::music_dl::MusicDownload::default(),
+            video_download: app::video_dl::VideoDownload::default(),
+            pinterest_download: app::pinterest::PinterstDownload::default(),
+            image_convert: app::img_convert::ImgConvert::default(),
+            video_convert: app::video_convert::VideoConvert::default(),
             run_on_start: false,
             yt: true,
             ffmpeg: false,

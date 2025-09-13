@@ -11,7 +11,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use tokio;
 use ureq::get;
 
-use crate::ui::shares::notify::{button_sound, done_sound, notification_done};
+use crate::app::shares::notify::{button_sound, done_sound, notification_done};
 
 pub struct PinterstDownload {
     pub link: String,

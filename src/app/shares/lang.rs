@@ -1,5 +1,5 @@
-use crate::ui::shares::config;
-use crate::ui::shares::config::get_config_file_path;
+use crate::app::shares::config;
+use crate::app::shares::config::get_config_file_path;
 use eframe::egui::{self, Color32, Ui};
 
 pub struct LangThing {}
