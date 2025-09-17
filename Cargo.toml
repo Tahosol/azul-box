@@ -1,14 +1,14 @@
 [package]
 name = "azul-box"
-authors = ["musdx", "https://github.com/musdx/azul-box"]
+authors = ["Tahoso", "https://github.com/tahosol/azul-box"]
 version = "0.1.72"
 edition = "2024"
 description = "A utility box for ffmpeg, yt-dlp, and more"
 license = "GNU GENERAL PUBLIC LICENSE Version 3"
 license-file = "LICENSE"
 readme = "README.md"
-homepage = "https://github.com/musdx/azul-box"
-repository = "https://github.com/musdx/azul-box"
+homepage = "https://github.com/tahosol/azul-box"
+repository = "https://github.com/tahosol/azul-box"
 
 [package.metadata.deb]
 assets = [
