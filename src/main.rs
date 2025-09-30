@@ -3,7 +3,7 @@
 mod app;
 
 use crate::app::shares::config::config_file_default;
-use eframe::egui::{self, IconData, RichText, global_theme_preference_buttons};
+use eframe::egui::{self, IconData, global_theme_preference_buttons};
 #[tokio::main]
 async fn main() -> eframe::Result {
     let icon = include_bytes!("../assets/logo.png").to_vec();
@@ -92,17 +92,17 @@ impl eframe::App for MainApp {
             .show(ctx, |ui| {
                 ui.add(egui::Checkbox::new(
                     &mut self.yt,
-                    egui::RichText::new("YT-Dl").size(17.0),
+                    egui::RichText::new("yt-dl").size(17.0),
                 ));
                 ui.separator();
                 ui.add(egui::Checkbox::new(
                     &mut self.pin,
-                    egui::RichText::new("Pin-Dl").size(17.0),
+                    egui::RichText::new("pin-dl").size(17.0),
                 ));
                 ui.separator();
                 ui.add(egui::Checkbox::new(
                     &mut self.ffmpeg,
-                    egui::RichText::new("FFmpeg").size(17.0),
+                    egui::RichText::new("ffmpeg").size(17.0),
                 ));
                 ui.separator();
             });
