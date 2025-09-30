@@ -29,7 +29,6 @@ pub fn lrclib_fetch(opt: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
     let title = tag.title().unwrap();
     let artist: String = form_urlencoded::byte_serialize(artist.as_bytes()).collect();
     let title: String = form_urlencoded::byte_serialize(title.as_bytes()).collect();
-    println!("{title}\n{artist}");
     let query = format!(
         "https://lrclib.net/api/get?artist_name={}&track_name={}",
         artist, title
