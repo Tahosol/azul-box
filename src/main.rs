@@ -17,12 +17,9 @@ async fn main() -> eframe::Result {
         ..Default::default()
     };
     eframe::run_native(
-        "azul_box",
+        "Azul box",
         options,
-        Box::new(|_cc| {
-            // egui_extras::install_image_loaders(&cc.egui_ctx);
-            Ok(Box::<MainApp>::default())
-        }),
+        Box::new(|_cc| Ok(Box::<MainApp>::default())),
     )
 }
 
@@ -59,7 +56,6 @@ impl eframe::App for MainApp {
         let mut style = (*ctx.style()).clone();
         if !self.run_on_start {
             config_file_default();
-            // self.check_result = version_check::version_check();
             self.run_on_start = true;
         };
 

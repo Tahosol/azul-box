@@ -14,4 +14,4 @@ sudo install -Dm 755 target/release/azul-box /usr/bin/azulbox
 
 sudo install -Dm 644 desktop/azul_box.desktop /usr/share/applications/
 
-echo -e ${RED}Remember to install dependencies! Check https://github.com/musdx/azul-box/blob/master/README.md#dependencies for more info
+echo -e ${RED}Remember to install dependencies! Check https://github.com/tahosol/azul-box/blob/master/README.md#dependencies for more info
