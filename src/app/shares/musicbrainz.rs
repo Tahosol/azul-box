@@ -37,7 +37,7 @@ pub fn musicbrain_work(opt: &Path, similarity_rate: i8) -> Result<(), Box<dyn Er
         "https://musicbrainz.org/ws/2/recording?query={}%20AND%20artist:{}&fmt=json",
         title, artist
     );
-    println!("{query}");
+    println!("musicbrain_work query: {query}");
     let _ = fetch_musicbrainzapi(&query, opt, similarity_rate, tag);
     Ok(())
 }
@@ -63,13 +63,14 @@ fn fetch_musicbrainzapi(
         .read_json::<ApiResponseMusicBrainz>()?;
     if !resp.recordings.is_empty() && (resp.recordings[0].score > similarity_rate) {
         let record = resp.recordings[0].clone();
-        println!("{}", record.id);
-        println!("{}", record.title);
+        println!("Record ID: {}", record.id);
+        println!("Record Title: {}", record.title);
         tag.set_title(record.title);
         let query_with_id = format!(
             "https://musicbrainz.org/ws/2/recording/{}?inc=artist-credits+isrcs+releases+release-groups+discids&fmt=json",
             record.id
         );
+        println!("Query_with_id: {query_with_id}");
         let mut re_for_id = agent
             .get(query_with_id)
             .header(
@@ -79,8 +80,14 @@ fn fetch_musicbrainzapi(
             .call()?;
         let data = re_for_id.body_mut().read_json::<IDAPI>()?;
         if let Some(artists) = data.artist_credit {
-            println!("{}", artists[0].name);
+            println!("Artist: {}", artists[0].name);
             tag.set_artist(artists[0].name.clone());
+        }
+        if let Some(isrcs) = data.isrcs {
+            if !isrcs.is_empty() {
+                println!("ISRCS: {}", isrcs[0]);
+                tag.insert_text(ItemKey::Isrc, isrcs[0].clone());
+            }
         }
         if let Some(releases) = data.releases {
             if !releases.is_empty() {
@@ -99,9 +106,14 @@ fn fetch_musicbrainzapi(
                     tag.set_disk_total(media[0].track_count);
                 }
 
-                println!("{release_id}");
+                println!("Release ID: {release_id}");
+                if tag.save_to_path(opt, WriteOptions::default()).is_ok() {
+                    println!("Musicbrainz Metadata Embedded Sucsess");
+                } else {
+                    eprintln!("Fail To Embedd Metadata From MusicBrainz")
+                }
                 let que = format!("https://coverartarchive.org/release/{}", release_id);
-                println!("{que}");
+                println!("Cover Art Link: {que}");
                 let mut res = agent
                     .get(que)
                     .header(
@@ -111,6 +123,7 @@ fn fetch_musicbrainzapi(
                     .call()?;
                 let callfocover = res.body_mut().read_json::<ApiResponseCover>()?;
                 if let Some(images) = callfocover.images {
+                    println!("wait what");
                     println!("{}", images[0].image);
                     let img_req = agent
                         .get(&images[0].image)
@@ -127,17 +140,26 @@ fn fetch_musicbrainzapi(
                         None,
                         data,
                     );
-                    println!("Cover mostly work");
+                    println!("Cover Image Found!");
                     if tag.picture_count() > 0 {
                         tag.remove_picture(0);
                     }
                     tag.push_picture(picture);
-                };
+                    if tag.save_to_path(opt, WriteOptions::default()).is_ok() {
+                        println!("Musicbrainz Cover Embedded Sucsess");
+                    } else {
+                        eprintln!("Fail To Embedd Cover From MusicBrainz")
+                    }
+                } else {
+                    eprintln!("Fail To Find Cover Art");
+                }
+            } else {
+                eprintln!("Fail To Find Releases Data");
             }
         }
+    } else {
+        eprintln!("Fail To Find Musicbrainz Data");
     }
-    println!("Work");
-    tag.save_to_path(opt, WriteOptions::default())?;
     Ok(())
 }
 use serde::Deserialize;
@@ -146,6 +168,7 @@ struct IDAPI {
     #[serde(rename = "artist-credit")]
     artist_credit: Option<Vec<ArtistCredit>>,
     releases: Option<Vec<Release>>,
+    isrcs: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize)]
