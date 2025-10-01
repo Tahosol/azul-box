@@ -123,7 +123,6 @@ fn fetch_musicbrainzapi(
                     .call()?;
                 let callfocover = res.body_mut().read_json::<ApiResponseCover>()?;
                 if let Some(images) = callfocover.images {
-                    println!("wait what");
                     println!("{}", images[0].image);
                     let img_req = agent
                         .get(&images[0].image)

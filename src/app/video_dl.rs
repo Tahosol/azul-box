@@ -316,15 +316,12 @@ fn download(
         yt.arg("-f")
             .arg("bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best");
     }
-    let output = yt.arg(link).output().expect("Pls some thing");
-    let log = String::from_utf8(output.stdout).unwrap_or_else(|_| "Life suck".to_string());
+    let output = yt.arg(link).output().expect("Fail To Run Yt-dlp");
+
+    let log = String::from_utf8_lossy(&output.stdout);
     println!("{log}");
 
-    let status: i8 = if log.contains("[EmbedThumbnail]") {
-        2
-    } else {
-        3
-    };
+    let status: i8 = if output.status.success() { 2 } else { 3 };
 
     if status == 2 {
         let _ = notification_done("video downloader");

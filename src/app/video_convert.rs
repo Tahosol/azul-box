@@ -176,7 +176,7 @@ fn download(input: String, directory: String, format_out: String) -> i8 {
         .arg(format!("{}.{}", filename, format_out))
         .current_dir(directory)
         .output()
-        .expect("Failed to execute command");
+        .expect("Failed to execute ffmpeg");
 
     let status = output.status;
 

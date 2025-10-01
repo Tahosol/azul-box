@@ -467,7 +467,6 @@ fn format_dl(
 
     yt.arg("--concurrent-fragments")
         .arg(&n)
-        .arg("-i")
         .arg("-x")
         .arg("--audio-quality")
         .arg("0")
@@ -526,11 +525,7 @@ fn format_dl(
                 let _ = lrclib_fetch(&music_file, &lang_code);
             }
         }
-        status = if log.contains("[EmbedThumbnail]") {
-            2
-        } else {
-            3
-        };
+        status = if output.status.success() { 2 } else { 3 };
     } else {
         yt.arg(&link);
         let output = yt.output().expect("Failed to execute command");
@@ -554,11 +549,7 @@ fn format_dl(
             }
         }
 
-        status = if log.contains("[EmbedThumbnail]") {
-            2
-        } else {
-            3
-        };
+        status = if output.status.success() { 2 } else { 3 };
     }
     if status == 2 {
         let _ = notification_done("music downloader");
@@ -613,7 +604,7 @@ fn lyrics_work(filename: &str, music_file: &str, format_name: &str, directory: &
         tag.save_to_path(&music_file, WriteOptions::default())
             .expect("ERROR: Failed to write the tag!");
 
-        println!("INFO: Tag successfully updated!");
+        println!("Lyrics from  Youtube Inserted Sucessfully");
         let _ = fs::remove_file(&lyrics_file);
     }
 }
