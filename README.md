@@ -93,4 +93,4 @@ or just uninstall via your package manager if you install via apt
 <img src="./assets/pic2.webp" width="450"></img>
 </div>
 
-[v0.1.6.webm](https://github.com/user-attachments/assets/390744b3-a4df-488e-8091-cd92455b69c1)
+[Demo](https://github.com/user-attachments/assets/07a4689a-24ee-4fa1-ae87-0c99072d7fdd)
