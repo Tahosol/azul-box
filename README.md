@@ -89,8 +89,8 @@ or just uninstall via your package manager if you install via apt
 ## Showcase
 
 <div align="center">
-<img src="./assets/pic1.png" width="450"></img>
-<img src="./assets/pic2.png" width="450"></img>
+<img src="./assets/pic1.webp" width="450"></img>
+<img src="./assets/pic2.webp" width="450"></img>
 </div>
 
 [v0.1.6.webm](https://github.com/user-attachments/assets/390744b3-a4df-488e-8091-cd92455b69c1)
