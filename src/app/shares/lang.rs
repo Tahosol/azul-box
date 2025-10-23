@@ -185,7 +185,6 @@ impl LangThing {
                                 .clicked()
                             {
                                 lang_in = code.to_string();
-                                ui.close();
                             };
                         } else {
                             if ui.button(*lang).clicked() {
@@ -202,7 +201,6 @@ impl LangThing {
                                         eprintln!("Fail saved languages {e}")
                                     }
                                 }
-                                ui.close();
                             }
                         }
                     }

@@ -2,7 +2,7 @@
 
 mod app;
 
-use crate::app::shares::config::config_file_default;
+use crate::app::shares::{config::config_file_default, ytdlp};
 use eframe::egui::{self, IconData, global_theme_preference_buttons};
 #[tokio::main]
 async fn main() -> eframe::Result {
@@ -31,12 +31,17 @@ struct MainApp {
     video_convert: app::video_convert::VideoConvert,
     run_on_start: bool,
     yt: bool,
+    yt_version: String,
     ffmpeg: bool,
     pin: bool,
 }
 
 impl Default for MainApp {
     fn default() -> Self {
+        let yt_version = match ytdlp::version_check() {
+            Some(version) => version,
+            None => "Missing".to_string(),
+        };
         Self {
             music_download: app::music_dl::MusicDownload::default(),
             video_download: app::video_dl::VideoDownload::default(),
@@ -44,6 +49,7 @@ impl Default for MainApp {
             image_convert: app::img_convert::ImgConvert::default(),
             video_convert: app::video_convert::VideoConvert::default(),
             run_on_start: false,
+            yt_version: yt_version,
             yt: true,
             ffmpeg: false,
             pin: false,
@@ -81,6 +87,21 @@ impl eframe::App for MainApp {
                 ui.heading("Azul Box");
                 ui.horizontal_wrapped(|ui| {
                     global_theme_preference_buttons(ui);
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        ui.menu_button("About", |ui| {
+                            ui.add(egui::Label::new(
+                                egui::RichText::new(format!(
+                                    "azul box: {}",
+                                    env!("CARGO_PKG_VERSION")
+                                ))
+                                .size(20.0),
+                            ));
+                            ui.add(egui::Label::new(
+                                egui::RichText::new(format!("yt-dlp: {}", self.yt_version))
+                                    .size(20.0),
+                            ));
+                        });
+                    });
                 });
             });
         });

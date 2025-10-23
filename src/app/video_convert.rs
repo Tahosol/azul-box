@@ -44,12 +44,10 @@ impl VideoConvert {
                 .clicked()
             {
                 self.format_out = name.to_string();
-                ui.close();
             };
         } else if self.format_in != name {
             if ui.button(name).clicked() {
                 self.format_out = name.to_string();
-                ui.close();
             };
         }
     }

@@ -111,7 +111,6 @@ impl MusicDownload {
                 .clicked()
             {
                 self.format = numbername;
-                ui.close();
             };
         } else {
             if ui.button(name).clicked() {
@@ -126,7 +125,6 @@ impl MusicDownload {
                         println!("music_dl: Fail change format {e}")
                     }
                 }
-                ui.close();
             };
         }
     }
@@ -263,9 +261,7 @@ impl MusicDownload {
                         }
                     }
                 }
-                if ui.button("Close").clicked() {
-                    ui.close();
-                }
+                if ui.button("Close").clicked() {}
             });
             ui.label("Status: ");
             if self.status.load(Ordering::Relaxed) == 1 {
