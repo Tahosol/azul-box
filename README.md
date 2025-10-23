@@ -34,13 +34,13 @@ The features will be really random because this is a software I made to randomly
 ### Archlinux:
 
 ```
-sudo pacman -S ffmpeg yt-dlp python-mutagen
+sudo pacman -S cargo ffmpeg yt-dlp python-mutagen
 ```
 
-### Linuxmint:
+### Linuxmint(Ubtuntu based):
 
 ```
-sudo apt install ffmpeg yt-dlp python3-mutagen
+sudo apt install cargo libasound2-dev ffmpeg yt-dlp python3-mutagen
 ```
 
 ### openSUSE Tumbleweed:
@@ -48,18 +48,25 @@ sudo apt install ffmpeg yt-dlp python3-mutagen
 You may need to add some extra official opensuse repo.
 
 ```
-sudo zypper in yt-dlp python-mutagen
+sudo zypper in cargo alsa-devel yt-dlp python-mutagen
 ```
 
 ### Fedora(non atomic):
 
 ```
-sudo dnf install ffmpeg-free yt-dlp python3-mutagen
+sudo dnf install cargo alsa-lib-devel ffmpeg-free yt-dlp python3-mutagen
 ```
 
 ## Installation
 
-Please use the `install.sh` script in the source code to install instead of the binary in the release, which is outdated.
+Build from source(make sure you have installed all dependencies first):
+
+```
+git clone https://codeberg.org/Tahoso/azul-box
+cd azul-box
+sudo chmod +x install.sh
+./install.sh
+```
 
 ~~Use this follow command to build then install the app. You will still need to install dependencies before run the install script.~~
 
