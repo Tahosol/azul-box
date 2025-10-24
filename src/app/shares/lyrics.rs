@@ -8,14 +8,11 @@ pub fn work(filename: &str, music_file: &str, format_name: &str, directory: &str
         Ok(file) => file,
         Err(error) => {
             println!("{:?}", error);
-            "No-1-1!!!F".to_string()
+            String::new()
         }
     };
-    if (!(lyrics == "No-1-1!!!F") && format_name == "flac")
-        || (!(lyrics == "No-1-1!!!F") && format_name == "opus")
-        || (!(lyrics == "No-1-1!!!F") && format_name == "mp3")
-        || (!(lyrics == "No-1-1!!!F") && format_name == "m4a")
-    {
+    let valid_format = &["flac", "opus", "mp3", "m4a"];
+    if !lyrics.is_empty() && valid_format.contains(&format_name) {
         use lofty::config::WriteOptions;
         use lofty::prelude::*;
         use lofty::probe::Probe;
