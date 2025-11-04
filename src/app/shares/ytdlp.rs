@@ -1,5 +1,5 @@
 use crate::app::shares::lrclib::lrclib_fetch;
-use crate::app::shares::musicbrainz::musicbrain_work;
+use crate::app::shares::musicbrainz;
 use crate::app::shares::notify::{notification_done, notification_fail};
 use std::path::Path;
 use std::process::Command;
@@ -35,6 +35,17 @@ pub fn video_download(
         .arg(n)
         .arg("--embed-thumbnail")
         .arg("--embed-metadata")
+        .arg("--add-metadata")
+        .arg("--metadata-from-title")
+        .arg("%(title)s")
+        .arg("--parse-metadata")
+        .arg("title:%(title)s")
+        .arg("--parse-metadata")
+        .arg("uploader:%(artist)s")
+        .arg("--output")
+        .arg("%(title)s.%(ext)s")
+        .arg("--compat-options")
+        .arg("no-live-chat")
         .current_dir(directory);
     if sub && auto_gen {
         yt.arg("--write-auto-subs")
@@ -170,7 +181,7 @@ impl Music {
             yt.arg(&self.link);
             let output = yt.output().expect("Failed to execute command");
 
-            let log = String::from_utf8(output.stdout).unwrap_or_else(|_| "Life suck".to_string());
+            let log = String::from_utf8(output.stdout).unwrap_or_default();
             println!("{log}");
 
             files = log
@@ -190,10 +201,13 @@ impl Music {
                     &item[0..item.len() - 1].to_string()
                 );
                 println!("music dir:{music_file}");
-                lyrics::work(&filename, &music_file, format_name, &self.directory);
+                match lyrics::work(&filename, &music_file, format_name, &self.directory) {
+                    Ok(_) => println!("Lyrics from youtube embeded"),
+                    Err(e) => println!("Fail to use lyrics from youtube: {e}"),
+                }
                 let music_file = Path::new(&music_file);
                 if self.musicbrainz {
-                    let _ = musicbrain_work(&music_file, self.sim_rate);
+                    let _ = musicbrainz::work(&music_file, self.sim_rate);
                 }
                 if self.lrclib {
                     let _ = lrclib_fetch(&music_file, &self.lang_code);
@@ -223,7 +237,7 @@ impl Music {
                     );
                     println!("music dir:{music_file}");
                     let music_file = Path::new(&music_file);
-                    let _ = musicbrain_work(&music_file, self.sim_rate);
+                    let _ = musicbrainz::work(&music_file, self.sim_rate);
                 }
             }
 

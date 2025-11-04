@@ -9,7 +9,7 @@ use std::path::Path;
 use std::time::Duration;
 use ureq::Agent;
 
-pub fn musicbrain_work(opt: &Path, similarity_rate: i8) -> Result<(), Box<dyn Error>> {
+pub fn work(opt: &Path, similarity_rate: i8) -> Result<(), Box<dyn Error>> {
     let mut tagged_file = Probe::open(&opt)?.read()?;
 
     let tag = match tagged_file.primary_tag_mut() {
