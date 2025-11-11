@@ -126,8 +126,6 @@ fn embed_img_internal(cover: &Path, musicfile: &Path) -> Result<(), lofty::error
     Ok(())
 }
 
-static VALID_FORMAT: &[&str] = &["jpg", "webp", "jpeg", "png"];
-
 fn image_finder(directory: &str, filename: &str, matchs: &[&str]) -> Option<PathBuf> {
     let elements = fs::read_dir(&directory).ok()?;
 
