@@ -81,6 +81,8 @@ pub struct MusicDl {
     pub musicbrainz: bool,
     pub threshold: i8,
     pub fragments: i8,
+    pub crop_cover: bool,
+    pub use_playlist_cover: bool,
 }
 impl Default for Config {
     fn default() -> Self {
@@ -104,6 +106,8 @@ impl Default for Config {
                 musicbrainz: false,
                 threshold: 90,
                 fragments: 1,
+                crop_cover: true,
+                use_playlist_cover: true,
             },
         }
     }

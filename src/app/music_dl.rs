@@ -25,6 +25,8 @@ pub struct MusicDownload {
     pub config_path: PathBuf,
     pub cookies: Option<String>,
     pub use_cookies: bool,
+    pub crop_cover: bool,
+    pub use_playlist_cover: bool,
 }
 
 use crate::app::shares::config;
@@ -57,6 +59,8 @@ impl Default for MusicDownload {
             cookies: configs.universal.cookies,
             config_path: path,
             use_cookies: configs.universal.use_cookies,
+            crop_cover: configs.music_dl.crop_cover,
+            use_playlist_cover: configs.music_dl.use_playlist_cover,
         }
     }
 }
@@ -182,6 +186,34 @@ impl MusicDownload {
                         }
                     }
                 }
+                ui.menu_button("Cover", |ui| {
+                    let check_1 = ui.checkbox(&mut self.use_playlist_cover, "Use playlist cover");
+                    if check_1.changed() {
+                        match config::modifier_config(&self.config_path, |cfg| {
+                            cfg.music_dl.use_playlist_cover = self.use_playlist_cover
+                        }) {
+                            Ok(_) => {
+                                println!("music_dl: Changed use_playlist_cover")
+                            }
+                            Err(e) => {
+                                println!("music_dl: Fail change use_playlist_cover {e}")
+                            }
+                        }
+                    }
+                    let check_2 = ui.checkbox(&mut self.crop_cover, "Crop cover to 1:1");
+                    if check_2.changed() {
+                        match config::modifier_config(&self.config_path, |cfg| {
+                            cfg.music_dl.crop_cover = self.crop_cover
+                        }) {
+                            Ok(_) => {
+                                println!("music_dl: Changed crop_cover")
+                            }
+                            Err(e) => {
+                                println!("music_dl: Fail change crop_cover {e}")
+                            }
+                        }
+                    }
+                });
                 ui.menu_button("Format", |ui| {
                     self.format_button(ui, "OPUS", 1);
                     self.format_button(ui, "FLAC", 2);
@@ -314,11 +346,25 @@ impl MusicDownload {
                     let lrclib = self.lrclib;
                     let cook = self.cookies.clone();
                     let use_cook = self.use_cookies;
+                    let crop = self.crop_cover;
+                    let playlist_cover = self.use_playlist_cover;
 
                     tokio::task::spawn(async move {
                         let yt = ytdlp::Music::new(
-                            link, directory, format, lyrics, frags, lang_code, auto, sim, brain,
-                            lrclib, cook, use_cook,
+                            link,
+                            directory,
+                            format,
+                            lyrics,
+                            frags,
+                            lang_code,
+                            auto,
+                            sim,
+                            brain,
+                            lrclib,
+                            cook,
+                            use_cook,
+                            crop,
+                            playlist_cover,
                         );
                         let status = yt.download();
                         progress.store(status, Ordering::Relaxed);

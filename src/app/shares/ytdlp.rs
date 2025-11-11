@@ -93,6 +93,8 @@ pub struct Music {
     pub lrclib: bool,
     pub cookies: Option<String>,
     pub use_cookies: bool,
+    pub crop_cover: bool,
+    pub use_playlist_cover: bool,
 }
 
 impl Music {
@@ -109,6 +111,8 @@ impl Music {
         lrclib: bool,
         cookies: Option<String>,
         use_cookies: bool,
+        crop_cover: bool,
+        use_playlist_cover: bool,
     ) -> Self {
         Self {
             link,
@@ -123,6 +127,8 @@ impl Music {
             lrclib,
             cookies,
             use_cookies,
+            crop_cover,
+            use_playlist_cover,
         }
     }
     pub fn download(self) -> i8 {
@@ -210,7 +216,14 @@ impl Music {
 
             println!("Playlist name: {play:?}");
 
-            match cover::embed(true, true, &music_file, &self.directory, filename, play) {
+            match cover::embed(
+                self.crop_cover,
+                self.use_playlist_cover,
+                &music_file,
+                &self.directory,
+                filename,
+                play,
+            ) {
                 Ok(_) => println!("embeded cover"),
                 Err(e) => println!("embed cover fail: {e}"),
             }
