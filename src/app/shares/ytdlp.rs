@@ -167,7 +167,6 @@ impl Music {
             .arg("no-live-chat")
             .current_dir(&self.directory);
 
-        let status: i8;
         if self.lyrics {
             if self.lyric_auto {
                 yt.arg("--write-auto-subs");
@@ -177,72 +176,46 @@ impl Music {
             if self.lang_code != "en" {
                 yt.arg("--sub-langs").arg(&self.lang_code);
             }
+        }
+        yt.arg(&self.link);
+        let output = yt.output().expect("Failed to execute command");
 
-            yt.arg(&self.link);
-            let output = yt.output().expect("Failed to execute command");
+        let log = String::from_utf8(output.stdout).unwrap_or_default();
+        println!("{log}");
 
-            let log = String::from_utf8(output.stdout).unwrap_or_default();
-            println!("{log}");
+        files = log
+            .lines()
+            .filter(|line| line.starts_with("[EmbedThumbnail]"))
+            .collect();
+        for i in files.into_iter() {
+            println!("i: {i}");
+            let item = i.split("Adding thumbnail to \"").last().unwrap();
+            let item = item[0..item.len() - 1].to_string();
+            println!("item: {item}");
 
-            files = log
-                .lines()
-                .filter(|line| line.starts_with("[EmbedThumbnail]"))
-                .collect();
-            for i in files.into_iter() {
-                println!("i: {i}");
-                let item = i.split("Adding thumbnail to \"").last().unwrap();
-                println!("item: {item}");
-                let extension = format!(".{}\"", format_name);
-                let filename = &item.split(&extension).next().unwrap();
-                println!("filename: {filename}");
-                let music_file = format!(
-                    "{}/{}",
-                    &self.directory,
-                    &item[0..item.len() - 1].to_string()
-                );
-                println!("music dir:{music_file}");
+            let extension = format!(".{}", format_name);
+            let filename = &item.split(&extension).next().unwrap();
+            println!("filename: {filename}");
+
+            let music_file = Path::new(&self.directory).join(&item);
+            println!("music dir: {music_file:?}");
+
+            if self.musicbrainz {
+                let _ = musicbrainz::work(&music_file, self.sim_rate);
+            }
+            if self.lyrics {
                 match lyrics::work(&filename, &music_file, format_name, &self.directory) {
                     Ok(_) => println!("Lyrics from youtube embeded"),
                     Err(e) => println!("Fail to use lyrics from youtube: {e}"),
-                }
-                let music_file = Path::new(&music_file);
-                if self.musicbrainz {
-                    let _ = musicbrainz::work(&music_file, self.sim_rate);
                 }
                 if self.lrclib {
                     let _ = lrclib_fetch(&music_file, &self.lang_code);
                 }
             }
-            status = if output.status.success() { 2 } else { 3 };
-        } else {
-            yt.arg(&self.link);
-            let output = yt.output().expect("Failed to execute command");
-            let log = String::from_utf8(output.stdout).unwrap_or_else(|_| "Fail".to_string());
-            println!("{log}");
-
-            if self.musicbrainz {
-                files = log
-                    .lines()
-                    .filter(|line| line.starts_with("[EmbedThumbnail]"))
-                    .collect();
-                for i in files.into_iter() {
-                    println!("i: {i}");
-                    let item = i.split("Adding thumbnail to \"").last().unwrap();
-                    println!("item: {item}");
-
-                    let music_file = format!(
-                        "{}/{}",
-                        &self.directory,
-                        &item[0..item.len() - 1].to_string()
-                    );
-                    println!("music dir:{music_file}");
-                    let music_file = Path::new(&music_file);
-                    let _ = musicbrainz::work(&music_file, self.sim_rate);
-                }
-            }
-
-            status = if output.status.success() { 2 } else { 3 };
         }
+
+        let status = if output.status.success() { 2 } else { 3 };
+
         if status == 2 {
             let _ = notification_done("music downloader");
         } else {

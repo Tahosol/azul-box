@@ -6,7 +6,7 @@ static VALID_FORMAT: &[&str] = &["flac", "opus", "mp3", "m4a"];
 
 pub fn work(
     filename: &str,
-    music_file: &str,
+    music_file: &Path,
     format_name: &str,
     directory: &str,
 ) -> Result<(), Box<dyn Error>> {
@@ -16,7 +16,6 @@ pub fn work(
             return Err("Lyrics file not found.".into());
         }
     };
-    let music_file = Path::new(&music_file);
     let lyrics = fs::read_to_string(&lyrics_file)?;
     if !lyrics.is_empty() && VALID_FORMAT.contains(&format_name) {
         use lofty::config::WriteOptions;
