@@ -1,4 +1,5 @@
 pub mod config;
+pub mod cover;
 pub mod lang;
 pub mod lrclib;
 pub mod lyrics;
