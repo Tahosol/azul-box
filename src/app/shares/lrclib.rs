@@ -1,10 +1,7 @@
 use std::error::Error;
 use std::path::Path;
 
-use lofty::config::WriteOptions;
-use lofty::prelude::*;
-use lofty::probe::Probe;
-use lofty::tag::Tag;
+use lofty::{self, config::WriteOptions, prelude::*, probe::Probe, tag::Tag};
 use serde::Deserialize;
 
 pub fn lrclib_fetch(opt: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
