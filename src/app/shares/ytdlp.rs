@@ -77,6 +77,7 @@ pub fn video_download(
     status
 }
 
+use crate::app::shares::cover;
 use crate::app::shares::lyrics;
 
 pub struct Music {
@@ -136,8 +137,6 @@ impl Music {
         let n = self.frags.to_string();
         println!("{n}");
 
-        let files: Vec<&str>;
-
         let mut yt = Command::new("yt-dlp");
 
         if let Some(cookie) = self.cookies
@@ -153,7 +152,7 @@ impl Music {
             .arg("0")
             .arg("--audio-format")
             .arg(format_name)
-            .arg("--embed-thumbnail")
+            .arg("--write-thumbnail")
             .arg("--add-metadata")
             .arg("--metadata-from-title")
             .arg("%(title)s")
@@ -183,13 +182,22 @@ impl Music {
         let log = String::from_utf8(output.stdout).unwrap_or_default();
         println!("{log}");
 
-        files = log
+        let playlist_name: Vec<&str> = log
             .lines()
-            .filter(|line| line.starts_with("[EmbedThumbnail]"))
+            .filter_map(|line| {
+                const PREFIX: &str = "[download] Finished downloading playlist:";
+                line.strip_prefix(PREFIX).map(str::trim)
+            })
+            .collect();
+        let play: Option<_> = playlist_name.get(0).cloned();
+
+        let files: Vec<&str> = log
+            .lines()
+            .filter(|line| line.starts_with("[Metadata]"))
             .collect();
         for i in files.into_iter() {
             println!("i: {i}");
-            let item = i.split("Adding thumbnail to \"").last().unwrap();
+            let item = i.split("Adding metadata to \"").last().unwrap();
             let item = item[0..item.len() - 1].to_string();
             println!("item: {item}");
 
@@ -199,6 +207,13 @@ impl Music {
 
             let music_file = Path::new(&self.directory).join(&item);
             println!("music dir: {music_file:?}");
+
+            println!("Playlist name: {play:?}");
+
+            match cover::embed(true, true, &music_file, &self.directory, filename, play) {
+                Ok(_) => println!("embeded cover"),
+                Err(e) => println!("embed cover fail: {e}"),
+            }
 
             if self.musicbrainz {
                 let _ = musicbrainz::work(&music_file, self.sim_rate);
@@ -212,6 +227,10 @@ impl Music {
                     let _ = lrclib_fetch(&music_file, &self.lang_code);
                 }
             }
+        }
+        if let Some(trash_cover) = play {
+            let _ =
+                std::fs::remove_file(Path::new(&self.directory).join(format!("{trash_cover}.png")));
         }
 
         let status = if output.status.success() { 2 } else { 3 };
