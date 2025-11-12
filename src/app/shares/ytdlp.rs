@@ -244,6 +244,8 @@ impl Music {
         if let Some(trash_cover) = play {
             let _ =
                 std::fs::remove_file(Path::new(&self.directory).join(format!("{trash_cover}.png")));
+            let _ =
+                std::fs::remove_file(Path::new(&self.directory).join(format!("{trash_cover}.jpg")));
         }
 
         let status = if output.status.success() { 2 } else { 3 };
