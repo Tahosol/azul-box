@@ -9,7 +9,7 @@ pub fn work(
     music_file: &Path,
     format_name: &str,
     directory: &str,
-    sanatize: bool,
+    sanitize: bool,
 ) -> Result<(), Box<dyn Error>> {
     let lyrics_file = match finder_lyrics(&directory, &filename) {
         Some(path) => path,
@@ -17,7 +17,7 @@ pub fn work(
             return Err("Lyrics file not found.".into());
         }
     };
-    let lyrics = if sanatize {
+    let lyrics = if sanitize {
         lyrics_cleaner(&fs::read_to_string(&lyrics_file)?)?
     } else {
         fs::read_to_string(&lyrics_file)?
