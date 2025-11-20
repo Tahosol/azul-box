@@ -351,7 +351,7 @@ impl MusicDownload {
                     let use_cook = self.use_cookies;
                     let crop = self.crop_cover;
                     let playlist_cover = self.use_playlist_cover;
-                    let sanatization = self.sanitize_lyrics;
+                    let sanitization = self.sanitize_lyrics;
 
                     tokio::task::spawn(async move {
                         let yt = ytdlp::Music::new(
@@ -369,7 +369,7 @@ impl MusicDownload {
                             use_cook,
                             crop,
                             playlist_cover,
-                            sanatization,
+                            sanitization,
                         );
                         let status = yt.download();
                         progress.store(status, Ordering::Relaxed);

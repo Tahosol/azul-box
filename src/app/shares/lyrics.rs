@@ -163,15 +163,21 @@ impl LrcLine {
         )
     }
     fn is_similar(&self, compared: &LrcLine) -> Result<Similarity, Box<dyn Error>> {
-        let content_check = textdistance::nstr::cosine(&self.content, &compared.content) > 0.85;
         let compared_in_self = self.content.contains(&compared.content.trim());
         let self_in_compared = compared.content.contains(&self.content.trim());
         let minustime = self.timestamp.minus(&compared.timestamp)?;
+
+        let strict_similar_content =
+            textdistance::nstr::cosine(&self.content, &compared.content) == 1.0;
+        let content_check = textdistance::nstr::cosine(&self.content, &compared.content) > 0.85;
+
         let time_status =
             minustime.minutes == 0 && -0.5 <= minustime.seconds && minustime.seconds <= 0.0;
-        println!("{minustime}: {time_status}");
+        let time_status_less_strict =
+            minustime.minutes == 0 && -2.0 < minustime.seconds && minustime.seconds <= 0.0;
+        // println!("{minustime}: {time_status}");
 
-        if content_check && time_status {
+        if (content_check && time_status) || (strict_similar_content && time_status_less_strict) {
             Ok(Similarity::Content)
         } else if compared_in_self && time_status {
             Ok(Similarity::BinA)
