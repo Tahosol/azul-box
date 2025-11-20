@@ -95,6 +95,7 @@ pub struct Music {
     pub use_cookies: bool,
     pub crop_cover: bool,
     pub use_playlist_cover: bool,
+    pub sanatize_lyrics: bool,
 }
 
 impl Music {
@@ -113,6 +114,7 @@ impl Music {
         use_cookies: bool,
         crop_cover: bool,
         use_playlist_cover: bool,
+        sanatize_lyrics: bool,
     ) -> Self {
         Self {
             link,
@@ -129,6 +131,7 @@ impl Music {
             use_cookies,
             crop_cover,
             use_playlist_cover,
+            sanatize_lyrics,
         }
     }
     pub fn download(self) -> i8 {
@@ -232,7 +235,13 @@ impl Music {
                 let _ = musicbrainz::work(&music_file, self.sim_rate);
             }
             if self.lyrics {
-                match lyrics::work(&filename, &music_file, format_name, &self.directory) {
+                match lyrics::work(
+                    &filename,
+                    &music_file,
+                    format_name,
+                    &self.directory,
+                    self.sanatize_lyrics,
+                ) {
                     Ok(_) => println!("Lyrics from youtube embeded"),
                     Err(e) => println!("Fail to use lyrics from youtube: {e}"),
                 }

@@ -27,6 +27,7 @@ pub struct MusicDownload {
     pub use_cookies: bool,
     pub crop_cover: bool,
     pub use_playlist_cover: bool,
+    pub sanatize_lyrics: bool,
 }
 
 use crate::app::shares::config;
@@ -61,6 +62,7 @@ impl Default for MusicDownload {
             use_cookies: configs.universal.use_cookies,
             crop_cover: configs.music_dl.crop_cover,
             use_playlist_cover: configs.music_dl.use_playlist_cover,
+            sanatize_lyrics: false,
         }
     }
 }
@@ -239,6 +241,7 @@ impl MusicDownload {
                                 }
                             }
                         });
+                        ui.toggle_value(&mut self.sanatize_lyrics, "Sanatization");
                         let lang_in = self.sub_lang.clone();
                         self.sub_lang = LangThing::lang_chooser(ui, lang_in);
                         self.auto_on(ui);
@@ -273,7 +276,7 @@ impl MusicDownload {
                                 }
                             }
                         });
-                    }
+                    };
                 });
                 self.music_brainz_button(ui);
 
@@ -348,6 +351,7 @@ impl MusicDownload {
                     let use_cook = self.use_cookies;
                     let crop = self.crop_cover;
                     let playlist_cover = self.use_playlist_cover;
+                    let sanatization = self.sanatize_lyrics;
 
                     tokio::task::spawn(async move {
                         let yt = ytdlp::Music::new(
@@ -365,6 +369,7 @@ impl MusicDownload {
                             use_cook,
                             crop,
                             playlist_cover,
+                            sanatization,
                         );
                         let status = yt.download();
                         progress.store(status, Ordering::Relaxed);
