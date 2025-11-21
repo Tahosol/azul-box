@@ -108,8 +108,10 @@ fn lyrics_cleaner(lyrics: &str) -> Result<String, Box<dyn Error>> {
         }
         counter += 1;
     }
-    let cleaned_lrc_strings: Vec<String> =
-        cleaned_lrc.iter().map(|line| line.return_lrc()).collect();
+    let mut cleaned_lrc_strings: Vec<String> = vec![];
+    for lrc in cleaned_lrc {
+        cleaned_lrc_strings.push(lrc.clone().clean().return_lrc());
+    }
     Ok(cleaned_lrc_strings.join("\n"))
 }
 
@@ -162,13 +164,23 @@ impl LrcLine {
             self.timestamp.minutes, self.timestamp.seconds, self.content
         )
     }
+    fn clean(&mut self) -> LrcLine {
+        let regex_patterns = [r"\\[A-Za-z]", r"</[A-Za-z]>", r"<[A-Za-z]>"];
+        let mut cleaned_content = self.content.clone();
+        for pattern in regex_patterns.iter() {
+            let regex = regex::Regex::new(pattern).unwrap();
+            cleaned_content = regex.replace_all(&cleaned_content, "").to_string();
+        }
+        self.content = cleaned_content;
+        self.clone()
+    }
     fn is_similar(&self, compared: &LrcLine) -> Result<Similarity, Box<dyn Error>> {
         let compared_in_self = self.content.contains(&compared.content.trim());
         let self_in_compared = compared.content.contains(&self.content.trim());
         let minustime = self.timestamp.minus(&compared.timestamp)?;
 
         let strict_similar_content =
-            textdistance::nstr::cosine(&self.content, &compared.content) == 1.0;
+            textdistance::nstr::cosine(&self.content, &compared.content) > 0.9;
         let content_check = textdistance::nstr::cosine(&self.content, &compared.content) > 0.85;
 
         let time_status =
