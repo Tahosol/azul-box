@@ -9,6 +9,8 @@ use std::path::Path;
 use std::time::Duration;
 use ureq::Agent;
 
+use crate::app::shares::string_cleaner;
+
 pub fn work(opt: &Path, similarity_rate: i8) -> Result<(), Box<dyn Error>> {
     let mut tagged_file = Probe::open(&opt)?.read()?;
 
@@ -30,7 +32,8 @@ pub fn work(opt: &Path, similarity_rate: i8) -> Result<(), Box<dyn Error>> {
     use url::form_urlencoded;
 
     let artist = tag.artist().unwrap();
-    let title = tag.title().unwrap();
+    let title = string_cleaner::clean_title_before_api_call(&tag.title().unwrap(), &artist);
+
     let artist: String = form_urlencoded::byte_serialize(artist.as_bytes()).collect();
     let title: String = form_urlencoded::byte_serialize(title.as_bytes()).collect();
     let query = format!(

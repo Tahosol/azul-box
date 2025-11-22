@@ -4,6 +4,8 @@ use std::path::Path;
 use lofty::{self, config::WriteOptions, prelude::*, probe::Probe, tag::Tag};
 use serde::Deserialize;
 
+use crate::app::shares::string_cleaner;
+
 pub fn lrclib_fetch(opt: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
     let mut tagged_file = Probe::open(&opt)?.read()?;
 
@@ -23,7 +25,8 @@ pub fn lrclib_fetch(opt: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
         }
     };
     let artist = tag.artist().unwrap();
-    let title = tag.title().unwrap();
+    let title = string_cleaner::clean_title_before_api_call(&tag.title().unwrap(), &artist);
+
     let artist: String = form_urlencoded::byte_serialize(artist.as_bytes()).collect();
     let title: String = form_urlencoded::byte_serialize(title.as_bytes()).collect();
     let query = format!(
