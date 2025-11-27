@@ -1,5 +1,6 @@
 pub mod config;
 pub mod cover;
+pub mod files;
 pub mod lang;
 pub mod lrclib;
 pub mod lyrics;

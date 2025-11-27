@@ -1,7 +1,7 @@
+use crate::app::shares::files::file_finder;
 use image::error::ImageError;
 use image::{GenericImageView, ImageReader};
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 fn square_crop_to_png(path: &Path) -> Result<(), ImageError> {
     let img = ImageReader::open(path)?.with_guessed_format()?.decode()?;
@@ -50,14 +50,14 @@ pub fn embed(
     filename: &str,
     playlist_name: Option<&str>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let single_cover = match image_finder(directory, filename, &["webp"]) {
+    let single_cover = match file_finder(directory, filename, &["webp"]) {
         Some(single_cover) => single_cover,
         None => return Err("No Cover of Music Found".into()),
     };
     if let Some(name) = playlist_name
         && playlist_cover
     {
-        match image_finder(directory, name, &["jpg", "jpeg", "png"]) {
+        match file_finder(directory, name, &["jpg", "jpeg", "png"]) {
             Some(raw_image) => {
                 let png = raw_image.with_extension("png");
                 println!("Cover report raw_image: {raw_image:?}");
@@ -124,24 +124,4 @@ fn embed_img_internal(cover: &Path, musicfile: &Path) -> Result<(), lofty::error
         eprintln!("Cover report: Embedded Fail")
     }
     Ok(())
-}
-
-fn image_finder(directory: &str, filename: &str, matchs: &[&str]) -> Option<PathBuf> {
-    let elements = fs::read_dir(&directory).ok()?;
-
-    for item in elements {
-        let path = item.ok()?.path();
-        if path.is_file() {
-            let ext = path.extension().and_then(|ext| ext.to_str())?;
-
-            if matchs.contains(&ext) {
-                let file = path.file_name().and_then(|name| name.to_str())?;
-                if file.contains(filename) {
-                    let good_file = Some(path);
-                    return good_file;
-                }
-            }
-        }
-    }
-    None
 }

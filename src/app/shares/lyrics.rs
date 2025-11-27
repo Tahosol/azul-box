@@ -1,6 +1,7 @@
+use crate::app::shares::files::file_finder;
 use std::error::Error;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 static VALID_FORMAT: &[&str] = &["flac", "opus", "mp3", "m4a"];
 
@@ -11,7 +12,7 @@ pub fn work(
     directory: &str,
     sanitize: bool,
 ) -> Result<(), Box<dyn Error>> {
-    let lyrics_file = match finder_lyrics(&directory, &filename) {
+    let lyrics_file = match file_finder(&directory, &filename, &["lrc"]) {
         Some(path) => path,
         None => {
             return Err("Lyrics file not found.".into());
@@ -50,25 +51,6 @@ pub fn work(
         fs::remove_file(&lyrics_file)?;
     }
     Ok(())
-}
-
-fn finder_lyrics(directory: &str, filename: &str) -> Option<PathBuf> {
-    let elements = fs::read_dir(&directory).ok()?;
-    let mut thing = Some(PathBuf::new());
-
-    for item in elements {
-        let path = item.ok()?.path();
-        if path.is_file() {
-            if path.extension().and_then(|ext| ext.to_str()) == Some("lrc") {
-                if let Some(file) = path.file_name().and_then(|name| name.to_str()) {
-                    if file.contains(filename) {
-                        thing = Some(path);
-                    }
-                }
-            }
-        }
-    }
-    thing
 }
 
 use std::fmt;

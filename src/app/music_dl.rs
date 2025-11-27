@@ -354,23 +354,23 @@ impl MusicDownload {
                     let sanitization = self.sanitize_lyrics;
 
                     tokio::task::spawn(async move {
-                        let yt = ytdlp::Music::new(
-                            link,
-                            directory,
-                            format,
-                            lyrics,
-                            frags,
-                            lang_code,
-                            auto,
-                            sim,
-                            brain,
-                            lrclib,
-                            cook,
-                            use_cook,
-                            crop,
-                            playlist_cover,
-                            sanitization,
-                        );
+                        let yt = ytdlp::Music {
+                            link: link,
+                            directory: directory,
+                            format: format,
+                            lyrics: lyrics,
+                            frags: frags,
+                            lang_code: lang_code,
+                            lyric_auto: auto,
+                            sim_rate: sim,
+                            musicbrainz: brain,
+                            lrclib: lrclib,
+                            cookies: cook,
+                            use_cookies: use_cook,
+                            crop_cover: crop,
+                            use_playlist_cover: playlist_cover,
+                            sanitize_lyrics: sanitization,
+                        };
                         let status = yt.download();
                         progress.store(status, Ordering::Relaxed);
                         if status == 2 {

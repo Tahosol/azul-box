@@ -99,41 +99,6 @@ pub struct Music {
 }
 
 impl Music {
-    pub fn new(
-        link: String,
-        directory: String,
-        format: i8,
-        lyrics: bool,
-        frags: i8,
-        lang_code: String,
-        lyric_auto: bool,
-        sim_rate: i8,
-        musicbrainz: bool,
-        lrclib: bool,
-        cookies: Option<String>,
-        use_cookies: bool,
-        crop_cover: bool,
-        use_playlist_cover: bool,
-        sanitize_lyrics: bool,
-    ) -> Self {
-        Self {
-            link,
-            directory,
-            format,
-            lyrics,
-            frags,
-            lang_code,
-            lyric_auto,
-            sim_rate,
-            musicbrainz,
-            lrclib,
-            cookies,
-            use_cookies,
-            crop_cover,
-            use_playlist_cover,
-            sanitize_lyrics,
-        }
-    }
     pub fn download(self) -> i8 {
         let format_name = match self.format {
             1 => "opus",
