@@ -24,6 +24,7 @@ pub struct VideoDownload {
     pub config_path: PathBuf,
     pub cookies: Option<String>,
     pub use_cookies: bool,
+    pub res: i32,
 }
 
 use crate::app::shares::config;
@@ -53,6 +54,7 @@ impl Default for VideoDownload {
             config_path: path,
             cookies: configs.universal.cookies,
             use_cookies: configs.universal.use_cookies,
+            res: configs.video_dl.resolution,
         }
     }
 }
@@ -82,6 +84,32 @@ impl VideoDownload {
                     }
                     Err(e) => {
                         println!("video_dl: Fail change format {e}")
+                    }
+                }
+            };
+        }
+    }
+    fn res_button(&mut self, ui: &mut egui::Ui, name: &str, res: i32) {
+        if self.res == res {
+            if ui
+                .add(egui::Button::new(
+                    egui::RichText::new(name).color(Color32::LIGHT_BLUE),
+                ))
+                .clicked()
+            {
+                self.res = res;
+            };
+        } else {
+            if ui.button(name).clicked() {
+                self.res = res;
+                match config::modifier_config(&self.config_path, |cfg| {
+                    cfg.video_dl.resolution = self.res
+                }) {
+                    Ok(_) => {
+                        println!("video_dl: Changed Resolution")
+                    }
+                    Err(e) => {
+                        println!("video_dl: Fail change Resolution {e}")
                     }
                 }
             };
@@ -139,6 +167,16 @@ impl VideoDownload {
                         }
                     }
                 }
+                ui.menu_button("Resolution", |ui| {
+                    self.res_button(ui, "144p", 144);
+                    self.res_button(ui, "240p", 240);
+                    self.res_button(ui, "360p", 360);
+                    self.res_button(ui, "480p", 480);
+                    self.res_button(ui, "720p", 720);
+                    self.res_button(ui, "1080p", 1080);
+                    self.res_button(ui, "1440p", 1440);
+                    self.res_button(ui, "2160p", 2160);
+                });
                 ui.menu_button("Format", |ui| {
                     self.format_button(ui, "MKV", 1);
                     self.format_button(ui, "MP4", 2);
@@ -249,11 +287,12 @@ impl VideoDownload {
                     let auto_gen = self.auto_sub;
                     let cook = self.cookies.clone();
                     let use_cook = self.use_cookies;
+                    let res = self.res;
 
                     tokio::task::spawn(async move {
                         let status = ytdlp::video_download(
                             link, directory, format, frags, subtile, &lang, auto_gen, cook,
-                            use_cook,
+                            use_cook, res,
                         );
                         progress.store(status, Ordering::Relaxed);
                         if status == 2 {

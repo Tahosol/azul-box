@@ -71,6 +71,7 @@ pub struct VideoDl {
     pub subtitle: bool,
     pub auto_gen_sub: bool,
     pub fragments: i8,
+    pub resolution: i32,
 }
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MusicDl {
@@ -97,6 +98,7 @@ impl Default for Config {
                 subtitle: true,
                 auto_gen_sub: false,
                 fragments: 1,
+                resolution: 1080,
             },
             music_dl: MusicDl {
                 format: 1,

@@ -21,6 +21,7 @@ pub fn video_download(
     auto_gen: bool,
     cookies: Option<String>,
     use_cookies: bool,
+    res: i32,
 ) -> i8 {
     let n = frag.to_string().to_owned();
 
@@ -57,10 +58,11 @@ pub fn video_download(
     }
 
     if format == 1 {
-        yt.arg("-f").arg("bestvideo+bestaudio");
+        yt.arg("-f")
+            .arg(format!("bestvideo[height<={res}]+bestaudio"));
     } else if format == 2 {
         yt.arg("-f")
-            .arg("bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best");
+            .arg("bestvideo[height<={res}][ext=mp4]+bestaudio");
     }
     let output = yt.arg(link).output().expect("Fail To Run Yt-dlp");
 
