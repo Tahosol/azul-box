@@ -1,11 +1,11 @@
-use crate::app::shares::lang::LangThing;
+use crate::app::cores::lang::LangThing;
 use eframe::egui::{self, Color32};
 use native_dialog::DialogBuilder;
 use std::process::Command;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicI8, Ordering};
 
-use crate::app::shares::{
+use crate::app::cores::{
     notify::{button_sound, done_sound, fail_sound},
     ytdlp,
 };
@@ -27,7 +27,7 @@ pub struct VideoDownload {
     pub res: i32,
 }
 
-use crate::app::shares::config;
+use crate::app::cores::config;
 
 impl Default for VideoDownload {
     fn default() -> Self {

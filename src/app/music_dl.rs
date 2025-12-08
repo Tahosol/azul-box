@@ -1,5 +1,5 @@
-use crate::app::shares::lang::LangThing;
-use crate::app::shares::{
+use crate::app::cores::lang::LangThing;
+use crate::app::cores::{
     notify::{button_sound, done_sound, fail_sound},
     ytdlp,
 };
@@ -30,7 +30,7 @@ pub struct MusicDownload {
     pub sanitize_lyrics: bool,
 }
 
-use crate::app::shares::config;
+use crate::app::cores::config;
 
 impl Default for MusicDownload {
     fn default() -> Self {

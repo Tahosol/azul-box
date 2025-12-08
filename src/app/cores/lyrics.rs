@@ -1,4 +1,4 @@
-use crate::app::shares::files::file_finder;
+use crate::app::cores::files::file_finder;
 use std::error::Error;
 use std::fs;
 use std::path::Path;

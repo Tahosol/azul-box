@@ -4,7 +4,7 @@ use std::process::Command;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicI8, Ordering};
 
-use crate::app::shares::notify::{
+use crate::app::cores::notify::{
     button_sound, done_sound, fail_sound, notification_done, notification_fail,
 };
 

@@ -2,7 +2,7 @@
 
 mod app;
 
-use crate::app::shares::{config::config_file_default, ytdlp};
+use crate::app::cores::{config::config_file_default, ytdlp};
 use eframe::egui::{self, IconData, global_theme_preference_buttons};
 #[tokio::main]
 async fn main() -> eframe::Result {

@@ -1,6 +1,6 @@
-use crate::app::shares::lrclib::lrclib_fetch;
-use crate::app::shares::musicbrainz;
-use crate::app::shares::notify::{notification_done, notification_fail};
+use crate::app::cores::lrclib::lrclib_fetch;
+use crate::app::cores::musicbrainz;
+use crate::app::cores::notify::{notification_done, notification_fail};
 use std::path::Path;
 use std::process::Command;
 
@@ -79,8 +79,8 @@ pub fn video_download(
     status
 }
 
-use crate::app::shares::cover;
-use crate::app::shares::lyrics;
+use crate::app::cores::cover;
+use crate::app::cores::lyrics;
 
 pub struct Music {
     pub link: String,

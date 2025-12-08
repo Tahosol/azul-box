@@ -1,4 +1,4 @@
-use crate::app::shares::files::file_finder;
+use crate::app::cores::files::file_finder;
 use image::error::ImageError;
 use image::{GenericImageView, ImageReader};
 use std::path::Path;

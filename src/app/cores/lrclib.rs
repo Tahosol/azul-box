@@ -4,7 +4,7 @@ use std::path::Path;
 use lofty::{self, config::WriteOptions, prelude::*, probe::Probe, tag::Tag};
 use serde::Deserialize;
 
-use crate::app::shares::string_cleaner;
+use crate::app::cores::string_cleaner;
 
 pub fn lrclib_fetch(opt: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
     let mut tagged_file = Probe::open(&opt)?.read()?;
