@@ -1,8 +1,18 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 mod app;
+pub const USERAGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36";
 
-use crate::app::cores::{config::config_file_default, ytdlp};
+use std::{
+    fs,
+    sync::{Arc, atomic::AtomicBool},
+};
+
+use crate::app::cores::{
+    config::config_file_default,
+    depen_manager::{Depen, get_path, install},
+    ytdlp,
+};
 use eframe::egui::{self, IconData, global_theme_preference_buttons};
 #[tokio::main]
 async fn main() -> eframe::Result {
@@ -34,11 +44,14 @@ struct MainApp {
     yt_version: String,
     ffmpeg: bool,
     pin: bool,
+    app_data: Depen,
+    is_install_depen: Arc<AtomicBool>,
 }
 
 impl Default for MainApp {
     fn default() -> Self {
-        let yt_version = match ytdlp::version_check() {
+        let app_data = get_path();
+        let yt_version = match ytdlp::version_check(&app_data) {
             Some(version) => version,
             None => "Missing".to_string(),
         };
@@ -53,6 +66,8 @@ impl Default for MainApp {
             yt: true,
             ffmpeg: false,
             pin: false,
+            app_data: app_data,
+            is_install_depen: Arc::new(AtomicBool::new(false)),
         }
     }
 }
@@ -60,6 +75,32 @@ impl Default for MainApp {
 impl eframe::App for MainApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let mut style = (*ctx.style()).clone();
+
+        if let Ok(false) = self.app_data.version.try_exists()
+            && !self
+                .is_install_depen
+                .load(std::sync::atomic::Ordering::Relaxed)
+        {
+            self.is_install_depen
+                .store(true, std::sync::atomic::Ordering::Relaxed);
+            let _ = fs::create_dir(&self.app_data.app_data);
+
+            let progress = self.is_install_depen.clone();
+            let dir = self.app_data.app_data.clone();
+
+            tokio::task::spawn(async move {
+                match install(&dir) {
+                    Ok(_) => {
+                        progress.store(false, std::sync::atomic::Ordering::Relaxed);
+                        println!("Updated dependencies");
+                    }
+                    Err(e) => {
+                        println!("dependencies install error {e}");
+                    }
+                }
+            });
+        }
+        // println!("{:?}", self.is_install_depen);
         if !self.run_on_start {
             config_file_default();
             self.run_on_start = true;
@@ -101,70 +142,105 @@ impl eframe::App for MainApp {
                                     .size(20.0),
                             ));
                         });
+
+                        if ui.button("Update").clicked() {
+                            if !self
+                                .is_install_depen
+                                .load(std::sync::atomic::Ordering::Relaxed)
+                            {
+                                self.is_install_depen
+                                    .store(true, std::sync::atomic::Ordering::Relaxed);
+
+                                let progress = self.is_install_depen.clone();
+                                let dir = self.app_data.app_data.clone();
+
+                                tokio::task::spawn(async move {
+                                    match install(&dir) {
+                                        Ok(_) => {
+                                            progress
+                                                .store(false, std::sync::atomic::Ordering::Relaxed);
+                                            println!("Updated dependencies");
+                                        }
+                                        Err(e) => {
+                                            println!("dependencies install error {e}");
+                                        }
+                                    }
+                                });
+                            }
+                        };
                     });
                 });
             });
         });
-
-        egui::CentralPanel::default().show(ctx, |ui| ui.label(""));
-        egui::SidePanel::left("Panel")
-            .resizable(true)
-            .width_range(50.0..=100.0)
-            .show(ctx, |ui| {
-                ui.add(egui::Checkbox::new(
-                    &mut self.yt,
-                    egui::RichText::new("yt-dl").size(17.0),
-                ));
-                ui.separator();
-                ui.add(egui::Checkbox::new(
-                    &mut self.pin,
-                    egui::RichText::new("pin-dl").size(17.0),
-                ));
-                ui.separator();
-                ui.add(egui::Checkbox::new(
-                    &mut self.ffmpeg,
-                    egui::RichText::new("ffmpeg").size(17.0),
-                ));
-                ui.separator();
+        if !self
+            .is_install_depen
+            .load(std::sync::atomic::Ordering::Relaxed)
+        {
+            egui::CentralPanel::default().show(ctx, |ui| ui.label(""));
+            egui::SidePanel::left("Panel")
+                .resizable(true)
+                .width_range(50.0..=100.0)
+                .show(ctx, |ui| {
+                    ui.add(egui::Checkbox::new(
+                        &mut self.yt,
+                        egui::RichText::new("yt-dl").size(17.0),
+                    ));
+                    ui.separator();
+                    ui.add(egui::Checkbox::new(
+                        &mut self.pin,
+                        egui::RichText::new("pin-dl").size(17.0),
+                    ));
+                    ui.separator();
+                    ui.add(egui::Checkbox::new(
+                        &mut self.ffmpeg,
+                        egui::RichText::new("ffmpeg").size(17.0),
+                    ));
+                    ui.separator();
+                });
+            if self.yt {
+                //music
+                egui::Window::new("Music-dl")
+                    .default_open(false)
+                    .resizable(false)
+                    .show(ctx, |ui| self.music_download.ui(ui, &self.app_data));
+                //Video
+                egui::Window::new("Video-dl")
+                    .default_open(false)
+                    .resizable(false)
+                    .show(ctx, |ui| {
+                        self.video_download.ui(ui, &self.app_data);
+                    });
+            }
+            if self.pin {
+                //Pinterest
+                egui::Window::new("Pinterest-dl")
+                    .default_open(false)
+                    .resizable(false)
+                    .show(ctx, |ui| {
+                        self.pinterest_download.ui(ui);
+                    });
+            }
+            if self.ffmpeg {
+                //Img convert
+                egui::Window::new("Image converter")
+                    .default_open(false)
+                    .resizable(false)
+                    .show(ctx, |ui| {
+                        self.image_convert.ui(ui);
+                    });
+                //Video convert
+                egui::Window::new("Video converter")
+                    .default_open(false)
+                    .resizable(false)
+                    .show(ctx, |ui| {
+                        self.video_convert.ui(ui);
+                    });
+            }
+        } else {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                ui.spinner();
+                ui.label("Downloading dependencies");
             });
-        if self.yt {
-            //music
-            egui::Window::new("Music-dl")
-                .default_open(false)
-                .resizable(false)
-                .show(ctx, |ui| self.music_download.ui(ui));
-            //Video
-            egui::Window::new("Video-dl")
-                .default_open(false)
-                .resizable(false)
-                .show(ctx, |ui| {
-                    self.video_download.ui(ui);
-                });
-        }
-        if self.pin {
-            //Pinterest
-            egui::Window::new("Pinterest-dl")
-                .default_open(false)
-                .resizable(false)
-                .show(ctx, |ui| {
-                    self.pinterest_download.ui(ui);
-                });
-        }
-        if self.ffmpeg {
-            //Img convert
-            egui::Window::new("Image converter")
-                .default_open(false)
-                .resizable(false)
-                .show(ctx, |ui| {
-                    self.image_convert.ui(ui);
-                });
-            //Video convert
-            egui::Window::new("Video converter")
-                .default_open(false)
-                .resizable(false)
-                .show(ctx, |ui| {
-                    self.video_convert.ui(ui);
-                });
         }
     }
 }

@@ -1,11 +1,12 @@
+use crate::app::cores::depen_manager::Depen;
 use crate::app::cores::lrclib::lrclib_fetch;
 use crate::app::cores::musicbrainz;
 use crate::app::cores::notify::{notification_done, notification_fail};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
-pub fn version_check() -> Option<String> {
-    match Command::new("yt-dlp").arg("--version").output() {
+pub fn version_check(depen: &Depen) -> Option<String> {
+    match Command::new(&depen.yt_dlp).arg("--version").output() {
         Ok(out) => String::from_utf8(out.stdout).ok(),
         Err(_) => None,
     }
@@ -22,10 +23,11 @@ pub fn video_download(
     cookies: Option<String>,
     use_cookies: bool,
     res: i32,
+    yt_dlp: PathBuf,
 ) -> i8 {
     let n = frag.to_string().to_owned();
 
-    let mut yt = Command::new("yt-dlp");
+    let mut yt = Command::new(yt_dlp);
     if let Some(cookie) = cookies
         && use_cookies
     {
@@ -98,6 +100,7 @@ pub struct Music {
     pub crop_cover: bool,
     pub use_playlist_cover: bool,
     pub sanitize_lyrics: bool,
+    pub yt_dlp: PathBuf,
 }
 
 impl Music {
@@ -113,7 +116,7 @@ impl Music {
         let n = self.frags.to_string();
         println!("{n}");
 
-        let mut yt = Command::new("yt-dlp");
+        let mut yt = Command::new(self.yt_dlp);
 
         if let Some(cookie) = self.cookies
             && self.use_cookies

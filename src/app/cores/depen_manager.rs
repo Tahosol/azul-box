@@ -3,14 +3,19 @@ use std::fs::{self, File};
 use std::io::copy;
 use std::path::PathBuf;
 use std::process::Command;
+use std::thread;
 use std::{error::Error, path::Path};
+
+use crate::USERAGENT;
 
 pub const OS: &str = std::env::consts::OS;
 pub struct Depen {
     pub app_data: PathBuf,
     pub yt_dlp: PathBuf,
+    #[allow(dead_code)]
     pub deno: PathBuf,
     pub version: PathBuf,
+    #[allow(dead_code)]
     pub ffmpeg: Option<PathBuf>,
 }
 
@@ -42,7 +47,6 @@ pub fn get_path() -> Depen {
 #[derive(Debug, Deserialize, Clone)]
 struct GithubRelease {
     name: String,
-    tag_name: String,
     assets: Vec<Asset>,
 }
 #[derive(Debug, Deserialize, Clone)]
@@ -52,17 +56,20 @@ struct Asset {
     digest: String,
 }
 
-fn unzip(file: &Path) -> Result<(), Box<dyn Error>> {
-    let file = fs::File::open(file)?;
+fn unzip(file_in: &Path) -> Result<(), Box<dyn Error>> {
+    let file = fs::File::open(file_in)?;
+    let dir_out = file_in.ancestors().nth(1).unwrap();
+    dbg!(&dir_out);
 
     let mut archive = zip::ZipArchive::new(file)?;
 
     for i in 0..archive.len() {
         let mut file = archive.by_index(i)?;
         let outpath = match file.enclosed_name() {
-            Some(path) => path,
+            Some(path) => dir_out.join(path),
             None => continue,
         };
+        dbg!(&outpath);
 
         if file.is_dir() {
             fs::create_dir_all(&outpath)?;
@@ -94,7 +101,8 @@ fn download_file(
     url: &str,
     digest: &str,
 ) -> Result<(), Box<dyn Error>> {
-    let response = ureq::get(url).call()?;
+    thread::sleep(std::time::Duration::from_secs(1));
+    let response = ureq::get(url).header("User-Agent", USERAGENT).call()?;
 
     let (_, body) = response.into_parts();
 
@@ -108,8 +116,9 @@ fn download_file(
                 .output()?
                 .stdout,
         )?;
-        if sum.split(" ").nth(0) != digest.split(":").last() {
+        if digest != "linux" && sum.split(" ").nth(0) != digest.split(":").last() {
             fs::remove_file(dir.join(filename))?;
+            println!("{filename} fail: {digest:?} is not same as {sum}");
             return Err(format!("Sha256 fail for {filename}").into());
         }
     }
@@ -117,7 +126,9 @@ fn download_file(
 }
 
 fn get_github_release(url: &str) -> Result<GithubRelease, Box<dyn Error>> {
+    thread::sleep(std::time::Duration::from_secs(1));
     Ok(ureq::get(url)
+        .header("User-Agent", USERAGENT)
         .call()?
         .body_mut()
         .read_json::<GithubRelease>()?)
@@ -134,6 +145,12 @@ fn yt_dlp_install(dir: &Path, github: &GithubRelease) -> Result<GithubRelease, B
             download_file(&file, dir, &asset.browser_download_url, &asset.digest)?
         }
     }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+
+        fs::set_permissions(&dir.join("yt-dlp"), fs::Permissions::from_mode(0o755))?;
+    }
     Ok(github.clone())
 }
 
@@ -142,7 +159,6 @@ fn ffmpeg_install(dir: &Path, github: &GithubRelease) -> Result<GithubRelease, B
         "linux" => {
             return Ok(GithubRelease {
                 name: "linux".to_string(),
-                tag_name: "linux".to_string(),
                 assets: vec![Asset {
                     name: "linux".to_string(),
                     browser_download_url: "linux".to_string(),
@@ -160,7 +176,14 @@ fn ffmpeg_install(dir: &Path, github: &GithubRelease) -> Result<GithubRelease, B
     }
     let zipfile = dir.join(&file);
     unzip(&zipfile)?;
-    fs::remove_file(zipfile)?;
+    fs::remove_file(&zipfile)?;
+    fs::copy(
+        &zipfile
+            .with_extension("")
+            .join("bin")
+            .join(format!("ffmpeg.{ext}")),
+        dir.join(format!("ffmpeg.{ext}")),
+    )?;
     Ok(github.clone())
 }
 
@@ -186,10 +209,15 @@ pub fn install(dir: &Path) -> Result<(), Box<dyn Error>> {
 
     let yt_github =
         get_github_release("https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest")?;
+    println!("dependi_install: yt_github {yt_github}");
+
     let ffmpeg_github =
         get_github_release("https://api.github.com/repos/yt-dlp/FFmpeg-Builds/releases/latest")?;
+    println!("dependi_install: ffmpeg_github {ffmpeg_github}");
+
     let deno_github =
         get_github_release("https://api.github.com/repos/denoland/deno/releases/latest")?;
+    println!("dependi_install: deno_github {deno_github}");
 
     match fs::read_to_string(&saved_data_location) {
         Ok(data) => {
@@ -223,4 +251,14 @@ struct VersionJson {
     yt_dlp: String,
     ffmpeg: String,
     deno: String,
+}
+impl std::fmt::Display for GithubRelease {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "release name is {}, it have {} assets",
+            self.name,
+            self.assets.len()
+        )
+    }
 }

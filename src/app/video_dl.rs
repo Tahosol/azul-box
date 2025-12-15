@@ -1,3 +1,4 @@
+use crate::app::cores::depen_manager::Depen;
 use crate::app::cores::lang::LangThing;
 use eframe::egui::{self, Color32};
 use native_dialog::DialogBuilder;
@@ -151,7 +152,7 @@ impl VideoDownload {
             }
         }
     }
-    pub fn ui(&mut self, ui: &mut egui::Ui) {
+    pub fn ui(&mut self, ui: &mut egui::Ui, depen: &Depen) {
         ui.horizontal(|ui| {
             ui.menu_button("Setting", |ui| {
                 let check = ui.checkbox(&mut self.use_cookies, "Use cookies");
@@ -288,11 +289,12 @@ impl VideoDownload {
                     let cook = self.cookies.clone();
                     let use_cook = self.use_cookies;
                     let res = self.res;
+                    let yt_dlp = depen.yt_dlp.clone();
 
                     tokio::task::spawn(async move {
                         let status = ytdlp::video_download(
                             link, directory, format, frags, subtile, &lang, auto_gen, cook,
-                            use_cook, res,
+                            use_cook, res, yt_dlp,
                         );
                         progress.store(status, Ordering::Relaxed);
                         if status == 2 {

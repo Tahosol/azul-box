@@ -1,3 +1,4 @@
+use crate::app::cores::depen_manager::Depen;
 use crate::app::cores::lang::LangThing;
 use crate::app::cores::{
     notify::{button_sound, done_sound, fail_sound},
@@ -169,7 +170,7 @@ impl MusicDownload {
         }
     }
 
-    pub fn ui(&mut self, ui: &mut egui::Ui) {
+    pub fn ui(&mut self, ui: &mut egui::Ui, depen: &Depen) {
         if self.format == 5 {
             self.lyrics = false;
         }
@@ -352,6 +353,7 @@ impl MusicDownload {
                     let crop = self.crop_cover;
                     let playlist_cover = self.use_playlist_cover;
                     let sanitization = self.sanitize_lyrics;
+                    let yt_dlp_path = depen.yt_dlp.clone();
 
                     tokio::task::spawn(async move {
                         let yt = ytdlp::Music {
@@ -370,6 +372,7 @@ impl MusicDownload {
                             crop_cover: crop,
                             use_playlist_cover: playlist_cover,
                             sanitize_lyrics: sanitization,
+                            yt_dlp: yt_dlp_path,
                         };
                         let status = yt.download();
                         progress.store(status, Ordering::Relaxed);
