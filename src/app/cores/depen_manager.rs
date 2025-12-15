@@ -1,9 +1,43 @@
 use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
 use std::io::copy;
+use std::path::PathBuf;
+use std::process::Command;
 use std::{error::Error, path::Path};
 
 pub const OS: &str = std::env::consts::OS;
+pub struct Depen {
+    pub app_data: PathBuf,
+    pub yt_dlp: PathBuf,
+    pub deno: PathBuf,
+    pub version: PathBuf,
+    pub ffmpeg: Option<PathBuf>,
+}
+
+pub fn get_path() -> Depen {
+    let data = dirs::data_local_dir().unwrap().join("azulbox");
+    if OS == "linux" {
+        Depen {
+            app_data: data.clone(),
+            yt_dlp: data.join("yt-dlp"),
+            deno: data.join("deno"),
+            version: data.join("version.json"),
+            ffmpeg: None,
+        }
+    } else {
+        Depen {
+            app_data: data.clone(),
+            yt_dlp: data.join("yt-dlp.exe"),
+            deno: data.join("deno.exe"),
+            version: data.join("version.json"),
+            ffmpeg: Some(
+                data.join("ffmpeg-master-latest-win64-gpl")
+                    .join("bin")
+                    .join("ffmpeg.exe"),
+            ),
+        }
+    }
+}
 
 #[derive(Debug, Deserialize, Clone)]
 struct GithubRelease {
@@ -54,13 +88,31 @@ fn unzip(file: &Path) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn download_file(filename: &str, dir: &Path, url: &str) -> Result<(), Box<dyn Error>> {
+fn download_file(
+    filename: &str,
+    dir: &Path,
+    url: &str,
+    digest: &str,
+) -> Result<(), Box<dyn Error>> {
     let response = ureq::get(url).call()?;
 
     let (_, body) = response.into_parts();
 
-    let mut file = File::create(Path::new(dir).join(filename))?;
+    let mut file = File::create(dir.join(filename))?;
     copy(&mut body.into_reader(), &mut file)?;
+    if OS == "linux" {
+        let sum = String::from_utf8(
+            Command::new("sha256sum")
+                .arg(filename)
+                .current_dir(dir)
+                .output()?
+                .stdout,
+        )?;
+        if sum.split(" ").nth(0) != digest.split(":").last() {
+            fs::remove_file(dir.join(filename))?;
+            return Err(format!("Sha256 fail for {filename}").into());
+        }
+    }
     Ok(())
 }
 
@@ -79,7 +131,7 @@ fn yt_dlp_install(dir: &Path, github: &GithubRelease) -> Result<GithubRelease, B
     };
     for asset in &github.assets {
         if asset.name == file {
-            download_file(&file, dir, &asset.browser_download_url)?
+            download_file(&file, dir, &asset.browser_download_url, &asset.digest)?
         }
     }
     Ok(github.clone())
@@ -103,7 +155,7 @@ fn ffmpeg_install(dir: &Path, github: &GithubRelease) -> Result<GithubRelease, B
     };
     for asset in &github.assets {
         if asset.name == file {
-            download_file(&file, dir, &asset.browser_download_url)?
+            download_file(&file, dir, &asset.browser_download_url, &asset.digest)?
         }
     }
     let zipfile = dir.join(&file);
@@ -120,7 +172,7 @@ fn deno_install(dir: &Path, github: &GithubRelease) -> Result<GithubRelease, Box
     };
     for asset in &github.assets {
         if asset.name == file {
-            download_file(&file, dir, &asset.browser_download_url)?
+            download_file(&file, dir, &asset.browser_download_url, &asset.digest)?
         }
     }
     let zipfile = dir.join(&file);
