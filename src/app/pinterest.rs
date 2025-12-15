@@ -11,6 +11,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use tokio;
 use ureq::get;
 
+use crate::USERAGENT;
 use crate::app::cores::notify::{button_sound, done_sound, notification_done};
 
 pub struct PinterstDownload {
@@ -124,7 +125,7 @@ fn download(link: String, directory: String, videoorimg: bool) {
 
 fn pin_pic_dl(link: &String, directory: &String) -> Result<(), Box<dyn Error>> {
     let body = ureq::get(link)
-        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36")
+        .header("User-Agent", USERAGENT)
         .call()?
         .body_mut()
         .read_to_string()?;
