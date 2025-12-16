@@ -26,21 +26,20 @@ The features will be really random because this is a software I made to randomly
 
 ## Dependencies
 
-- [rustup](https://rustup.rs/)
-- ffmpeg & ffprobe
-- yt-dlp
-- mutagen
+- cargo
+- ffmpeg
+- python
 
 ### Archlinux:
 
 ```
-sudo pacman -S cargo ffmpeg yt-dlp python-mutagen
+sudo pacman -S cargo ffmpeg python
 ```
 
 ### Linuxmint(Ubtuntu based):
 
 ```
-sudo apt install cargo libasound2-dev ffmpeg yt-dlp python3-mutagen
+sudo apt install cargo libasound2-dev ffmpeg python3.12
 ```
 
 ### openSUSE Tumbleweed:
@@ -48,13 +47,13 @@ sudo apt install cargo libasound2-dev ffmpeg yt-dlp python3-mutagen
 You may need to add some extra official opensuse repo.
 
 ```
-sudo zypper in cargo alsa-devel yt-dlp python-mutagen
+sudo zypper in cargo alsa-devel python315
 ```
 
 ### Fedora(non atomic):
 
 ```
-sudo dnf install cargo alsa-lib-devel ffmpeg-free yt-dlp python3-mutagen
+sudo dnf install cargo alsa-lib-devel ffmpeg-free python3.11
 ```
 
 ## Installation
