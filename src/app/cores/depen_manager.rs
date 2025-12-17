@@ -6,9 +6,9 @@ use std::process::Command;
 use std::thread;
 use std::{error::Error, path::Path};
 
+use crate::OS;
 use crate::USERAGENT;
 
-pub const OS: &str = std::env::consts::OS;
 pub struct Depen {
     pub app_data: PathBuf,
     pub yt_dlp: PathBuf,
