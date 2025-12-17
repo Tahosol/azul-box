@@ -216,7 +216,7 @@ impl eframe::App for MainApp {
                     .default_open(false)
                     .resizable(false)
                     .show(ctx, |ui| {
-                        self.pinterest_download.ui(ui);
+                        self.pinterest_download.ui(ui, &self.app_data);
                     });
             }
             if self.ffmpeg {

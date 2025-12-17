@@ -12,6 +12,7 @@ use tokio;
 use ureq::get;
 
 use crate::USERAGENT;
+use crate::app::cores::depen_manager::Depen;
 use crate::app::cores::notify::{button_sound, done_sound, notification_done};
 
 pub struct PinterstDownload {
@@ -45,7 +46,7 @@ impl PinterstDownload {
     fn start_download_status(&mut self) {
         self.status_pending.store(true, Ordering::Relaxed);
     }
-    pub fn ui(&mut self, ui: &mut egui::Ui) {
+    pub fn ui(&mut self, ui: &mut egui::Ui, depen: &Depen) {
         ui.horizontal(|ui| {
             ui.label("Status: ");
             if self.status_complete.load(Ordering::Relaxed) {
@@ -94,9 +95,10 @@ impl PinterstDownload {
                     let complete = self.status_complete.clone();
                     let doing = self.status_pending.clone();
                     let videoornot = self.imgoranime;
+                    let yt_dlp_path = depen.yt_dlp.clone();
 
                     tokio::task::spawn(async move {
-                        download(link, directory, videoornot);
+                        download(link, directory, videoornot, &yt_dlp_path);
                         complete.store(true, Ordering::Relaxed);
                         doing.store(false, Ordering::Relaxed);
                         let _ = done_sound();
@@ -107,9 +109,9 @@ impl PinterstDownload {
     }
 }
 
-fn download(link: String, directory: String, videoorimg: bool) {
+fn download(link: String, directory: String, videoorimg: bool, yt_dlp_path: &Path) {
     if videoorimg {
-        let output = Command::new("yt-dlp")
+        let output = Command::new(yt_dlp_path)
             .arg(&link)
             .current_dir(&directory)
             .output()
