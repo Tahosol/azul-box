@@ -232,7 +232,7 @@ impl eframe::App for MainApp {
                     .default_open(false)
                     .resizable(false)
                     .show(ctx, |ui| {
-                        self.video_convert.ui(ui);
+                        self.video_convert.ui(ui, &self.app_data);
                     });
             }
         } else {
