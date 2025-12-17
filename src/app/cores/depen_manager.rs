@@ -35,11 +35,7 @@ pub fn get_path() -> Depen {
             yt_dlp: data.join("yt-dlp.exe"),
             deno: data.join("deno.exe"),
             version: data.join("version.json"),
-            ffmpeg: Some(
-                data.join("ffmpeg-master-latest-win64-gpl")
-                    .join("bin")
-                    .join("ffmpeg.exe"),
-            ),
+            ffmpeg: Some(data.join("ffmpeg.exe")),
         }
     }
 }

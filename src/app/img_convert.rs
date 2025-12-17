@@ -1,8 +1,10 @@
+use crate::app::cores::depen_manager::Depen;
 use crate::app::cores::notify::{
     button_sound, done_sound, fail_sound, notification_done, notification_fail,
 };
 use eframe::egui::{self, Color32};
 use native_dialog::DialogBuilder;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicI8, Ordering};
@@ -50,7 +52,7 @@ impl ImgConvert {
             };
         }
     }
-    pub fn ui(&mut self, ui: &mut egui::Ui) {
+    pub fn ui(&mut self, ui: &mut egui::Ui, depen: &Depen) {
         ui.horizontal(|ui| {
             ui.horizontal_wrapped(|ui| {
                 ui.label("Output: ");
@@ -134,9 +136,10 @@ impl ImgConvert {
                     let directory = self.out_directory.clone();
                     let format_out = self.format_out.clone();
                     let progress = self.status.clone();
+                    let ffmpeg = depen.ffmpeg.clone();
 
                     tokio::task::spawn(async move {
-                        let status = download(input, directory, format_out);
+                        let status = download(input, directory, format_out, ffmpeg);
                         progress.store(status, Ordering::Relaxed);
                         if status == 2 {
                             let _ = done_sound();
@@ -155,18 +158,33 @@ impl ImgConvert {
     }
 }
 
-fn download(input: String, directory: String, format_out: String) -> i8 {
-    let filename = input.split("/").last().unwrap().split(".").next().unwrap();
+fn download(input: String, directory: String, format_out: String, ffmpeg: Option<PathBuf>) -> i8 {
+    let filename = Path::new(&input)
+        .file_name()
+        .expect("Fail to unwrap filename in img_convert")
+        .to_str()
+        .expect("Fail to convert OSstr to &str");
 
-    let output = Command::new("ffmpeg")
-        .arg("-i")
-        .arg(&input)
-        .arg("-q:v")
-        .arg("100")
-        .arg(format!("{}.{}", filename, format_out))
-        .current_dir(directory)
-        .output()
-        .expect("Failed to execute ffmpeg");
+    let output = match ffmpeg {
+        Some(f) => Command::new(f)
+            .arg("-i")
+            .arg(&input)
+            .arg("-q:v")
+            .arg("100")
+            .arg(format!("{}.{}", filename, format_out))
+            .current_dir(directory)
+            .output()
+            .expect("Failed to execute ffmpeg"),
+        None => Command::new("ffmpeg")
+            .arg("-i")
+            .arg(&input)
+            .arg("-q:v")
+            .arg("100")
+            .arg(format!("{}.{}", filename, format_out))
+            .current_dir(directory)
+            .output()
+            .expect("Failed to execute ffmpeg"),
+    };
 
     let status = output.status;
 

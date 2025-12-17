@@ -225,7 +225,7 @@ impl eframe::App for MainApp {
                     .default_open(false)
                     .resizable(false)
                     .show(ctx, |ui| {
-                        self.image_convert.ui(ui);
+                        self.image_convert.ui(ui, &self.app_data);
                     });
                 //Video convert
                 egui::Window::new("Video converter")
