@@ -102,6 +102,46 @@ pub struct Music {
     pub sanitize_lyrics: bool,
     pub yt_dlp: PathBuf,
 }
+use regex::Regex;
+use scraper::{Html, Selector};
+use std::error::Error;
+#[allow(dead_code)]
+fn get_name_from_title(html: &str) -> String {
+    let doc = Html::parse_document(&html);
+    let sel = Selector::parse("title").unwrap();
+    for i in doc.select(&sel) {
+        return i.inner_html().replace(" - YouTube", "");
+    }
+    String::new()
+}
+#[allow(dead_code)]
+fn get_all_songs_name_from_regex_playlist(html: &str) -> Vec<String> {
+    let regex = Regex::new(r##""title":\{"runs":\[\{[^}]*\}\],"accessibility""##).unwrap();
+    let mut list_of_song = vec![];
+    for i in regex.find_iter(html) {
+        let a = i
+            .as_str()
+            .replace(r##""}],"accessibility""##, "")
+            .replace(r##""title":{"runs":[{"text":""##, "");
+        dbg!(&a);
+        list_of_song.push(a);
+    }
+
+    list_of_song
+}
+#[allow(dead_code)]
+fn playlist_fix_url(url: &str) -> String {
+    match url.split("&index=").nth(0) {
+        Some(removed_index) => {
+            let playlist_id = removed_index.split("&list=").last().unwrap();
+            return format!("https://www.youtube.com/playlist?list={}", playlist_id);
+        }
+        None => {
+            let playlist_id = url.split("&list=").last().unwrap();
+            return format!("https://www.youtube.com/playlist?list={}", playlist_id);
+        }
+    }
+}
 
 impl Music {
     pub fn download(self) -> i8 {
@@ -161,30 +201,65 @@ impl Music {
         let log = String::from_utf8(output.stdout).unwrap_or_default();
         println!("{log}");
 
-        let playlist_name: Vec<&str> = log
-            .lines()
-            .filter_map(|line| {
-                const PREFIX: &str = "[download] Finished downloading playlist:";
-                line.strip_prefix(PREFIX).map(str::trim)
-            })
-            .collect();
-        let play: Option<_> = playlist_name.get(0).cloned();
+        let play: Option<String>;
+        let files: Vec<String>;
+        #[cfg(target_os = "windows")]
+        {
+            if self.link.contains("&list=") {
+                if let Ok(html) = get_html(&playlist_fix_url(&self.link)) {
+                    play = Some(get_name_from_title(&html));
+                    files = get_all_songs_name_from_regex_playlist(&html);
+                }
+            } else if self.link.contains("list=") {
+                if let Ok(html) = get_html(&self.link) {
+                    play = Some(get_name_from_title(&html));
+                    files = get_all_songs_name_from_regex_playlist(&html);
+                }
+            } else {
+                if let Ok(html) = get_html(&self.link) {
+                    play = None;
+                    files = vec![get_name_from_title(&html)];
+                }
+            }
+        }
 
-        let files: Vec<&str> = log
-            .lines()
-            .filter(|line| line.starts_with("[Metadata]"))
-            .collect();
+        #[cfg(target_os = "linux")]
+        {
+            const PREFIX: &str = "[download] Finished downloading playlist:";
+            let playlist_name: Vec<String> = log
+                .lines()
+                .filter_map(|line| line.strip_prefix(PREFIX).map(str::trim).to_owned())
+                .map(|l| l.to_string())
+                .collect();
+
+            play = playlist_name.get(0).cloned();
+
+            files = log
+                .lines()
+                .filter(|line| line.starts_with("[Metadata]"))
+                .map(|l| l.to_string())
+                .collect();
+        }
+
         for i in files.into_iter() {
+            let extension = format!(".{}", format_name);
             println!("i: {i}");
+
+            #[cfg(target_os = "linux")]
             let item = i.split("Adding metadata to \"").last().unwrap();
+            #[cfg(target_os = "linux")]
             let item = item[0..item.len() - 1].to_string();
+            #[cfg(target_os = "linux")]
+            let filename = item.split(&extension).next().unwrap();
+            #[cfg(target_os = "linux")]
             println!("item: {item}");
 
-            let extension = format!(".{}", format_name);
-            let filename = &item.split(&extension).next().unwrap();
+            #[cfg(target_os = "windows")]
+            let filename = i;
+
             println!("filename: {filename}");
 
-            let music_file = Path::new(&self.directory).join(&item);
+            let music_file = Path::new(&self.directory).join(format!("{}{}", filename, extension));
             println!("music dir: {music_file:?}");
 
             println!("Playlist name: {play:?}");
@@ -195,7 +270,7 @@ impl Music {
                 &music_file,
                 &self.directory,
                 filename,
-                play,
+                &play,
             ) {
                 Ok(_) => println!("embeded cover"),
                 Err(e) => println!("embed cover fail: {e}"),
@@ -236,4 +311,11 @@ impl Music {
         }
         status
     }
+}
+#[allow(dead_code)]
+fn get_html(url: &str) -> Result<String, Box<dyn Error>> {
+    Ok(ureq::get(playlist_fix_url(url))
+        .call()?
+        .body_mut()
+        .read_to_string()?)
 }

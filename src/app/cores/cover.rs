@@ -48,7 +48,7 @@ pub fn embed(
     musicfile: &Path,
     directory: &str,
     filename: &str,
-    playlist_name: Option<&str>,
+    playlist_name: &Option<String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let single_cover = match file_finder(directory, filename, &["webp"]) {
         Some(single_cover) => single_cover,
@@ -57,7 +57,7 @@ pub fn embed(
     if let Some(name) = playlist_name
         && playlist_cover
     {
-        match file_finder(directory, name, &["jpg", "jpeg", "png"]) {
+        match file_finder(directory, &name, &["jpg", "jpeg", "png"]) {
             Some(raw_image) => {
                 let png = raw_image.with_extension("png");
                 println!("Cover report raw_image: {raw_image:?}");
