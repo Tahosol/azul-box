@@ -549,7 +549,7 @@ dependencies = [
 
 [[package]]
 name = "azul-box"
-version = "0.2.0-2"
+version = "0.2.0-3"
 dependencies = [
  "dirs",
  "eframe",
