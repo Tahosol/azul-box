@@ -209,16 +209,25 @@ impl Music {
                 if let Ok(html) = get_html(&playlist_fix_url(&self.link)) {
                     play = Some(get_name_from_title(&html));
                     files = get_all_songs_name_from_regex_playlist(&html);
+                } else {
+                    play = None;
+                    files = vec![];
                 }
             } else if self.link.contains("list=") {
                 if let Ok(html) = get_html(&self.link) {
                     play = Some(get_name_from_title(&html));
                     files = get_all_songs_name_from_regex_playlist(&html);
+                } else {
+                    play = None;
+                    files = vec![];
                 }
             } else {
                 if let Ok(html) = get_html(&self.link) {
                     play = None;
                     files = vec![get_name_from_title(&html)];
+                } else {
+                    play = None;
+                    files = vec![];
                 }
             }
         }
@@ -269,7 +278,7 @@ impl Music {
                 self.use_playlist_cover,
                 &music_file,
                 &self.directory,
-                filename,
+                &filename,
                 &play,
             ) {
                 Ok(_) => println!("embeded cover"),
