@@ -15,7 +15,6 @@ pub struct Depen {
     #[allow(dead_code)]
     pub deno: PathBuf,
     pub version: PathBuf,
-    #[allow(dead_code)]
     pub ffmpeg: Option<PathBuf>,
 }
 
