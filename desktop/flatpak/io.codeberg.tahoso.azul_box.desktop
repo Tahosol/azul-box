@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+
+Name=Azul Box
+Comment=A wraper for ffmpeg and yt-dlp written in rust.
+Categories=AudioVideo;Music;
+
+Icon=azul-box
+Exec=azul-box
+Terminal=false

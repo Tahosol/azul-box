@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<component type="desktop-application">
+  <id>io.codeberg.tahoso.azul_box</id>
+
+  <name>Azul Box</name>
+  <summary>A wraper for ffmpeg and yt-dlp written in rust.</summary>
+
+  <metadata_license>MIT</metadata_license>
+  <project_license>GPL-2.0-or-later</project_license>
+
+  <description>
+    <p>
+      ## Feature
+    </p>
+    <p>
+      - Download music from link with metadata/cover embedded with synced lyric(lyric do not work for WAV) - Download Video from link with highest quality with some metadata embeded - Download Pin from pinterest without account - Convert Images formats powered by ffmpeg - Convert Video formats powered by ffmpeg
+    </p>
+    <p>
+      The video/music download will technically support all yt-dlp [support list](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md) not just youtube.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">io.codeberg.tahoso.azul_box.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <image
+            >https://codeberg.org/Tahoso/azul-box/raw/branch/master/assets/pic1.webp</image>
+    </screenshot>
+    <screenshot>
+      <image
+            >https://codeberg.org/Tahoso/azul-box/raw/branch/master/assets/pic2.webp</image>
+    </screenshot>
+  </screenshots>
+</component>
