@@ -131,15 +131,22 @@ fn get_all_songs_name_from_regex_playlist(html: &str) -> Vec<String> {
 }
 #[allow(dead_code)]
 fn playlist_fix_url(url: &str) -> String {
-    match url.split("&index=").nth(0) {
-        Some(removed_index) => {
-            let playlist_id = removed_index.split("&list=").last().unwrap();
-            return format!("https://www.youtube.com/playlist?list={}", playlist_id);
+    if url.contains("&list") {
+        match url.split("&index=").nth(0) {
+            Some(removed_index) => {
+                let playlist_id = removed_index.split("&list=").last().unwrap();
+                return format!("https://www.youtube.com/playlist?list={}", playlist_id);
+            }
+            None => {
+                let playlist_id = url.split("&list=").last().unwrap();
+                return format!("https://www.youtube.com/playlist?list={}", playlist_id);
+            }
         }
-        None => {
-            let playlist_id = url.split("&list=").last().unwrap();
-            return format!("https://www.youtube.com/playlist?list={}", playlist_id);
-        }
+    } else if url.contains("?list=") && url.contains("youtu.be") {
+        let playlist_id = url.split("?list=").last().unwrap();
+        return format!("https://www.youtube.com/playlist?list={}", playlist_id);
+    } else {
+        url.to_string()
     }
 }
 
@@ -205,29 +212,31 @@ impl Music {
         let files: Vec<String>;
         #[cfg(target_os = "windows")]
         {
-            if self.link.contains("&list=") {
-                if let Ok(html) = get_html(&playlist_fix_url(&self.link)) {
-                    play = Some(get_name_from_title(&html));
-                    files = get_all_songs_name_from_regex_playlist(&html);
-                } else {
-                    play = None;
-                    files = vec![];
-                }
-            } else if self.link.contains("list=") {
-                if let Ok(html) = get_html(&self.link) {
-                    play = Some(get_name_from_title(&html));
-                    files = get_all_songs_name_from_regex_playlist(&html);
-                } else {
-                    play = None;
-                    files = vec![];
+            if self.link.contains("list=") {
+                match get_html(&self.link) {
+                    Ok(html) => {
+                        println!("case 1 worked");
+                        play = Some(get_name_from_title(&html));
+                        files = get_all_songs_name_from_regex_playlist(&html);
+                    }
+                    Err(e) => {
+                        println!("Error case 1 : {e}");
+                        play = None;
+                        files = vec![];
+                    }
                 }
             } else {
-                if let Ok(html) = get_html(&self.link) {
-                    play = None;
-                    files = vec![get_name_from_title(&html)];
-                } else {
-                    play = None;
-                    files = vec![];
+                match get_html(&self.link) {
+                    Ok(html) => {
+                        println!("case 2 worked");
+                        play = None;
+                        files = vec![get_name_from_title(&html)];
+                    }
+                    Err(e) => {
+                        println!("Error case 2: {e}");
+                        play = None;
+                        files = vec![];
+                    }
                 }
             }
         }
