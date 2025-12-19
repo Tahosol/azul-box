@@ -385,8 +385,18 @@ impl MusicDownload {
                 }
             } else if self.status.load(Ordering::Relaxed) == 1 {
                 if ui.button("Cancel").clicked() {
-                    let _ = button_sound();
-                    let _ = Command::new("pkill").arg("yt-dlp").output();
+                    #[cfg(target_os = "windows")]
+                    {
+                        let _ = button_sound();
+                        let _ = Command::new("taskkill")
+                            .args(&["/IM", "yt-dlp.exe", "/F"])
+                            .output();
+                    }
+                    #[cfg(target_os = "linux")]
+                    {
+                        let _ = button_sound();
+                        let _ = Command::new("pkill").arg("yt-dlp").output();
+                    }
                 }
             }
         });
