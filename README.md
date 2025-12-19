@@ -8,7 +8,7 @@
 
 ## Status
 
-**This is just a mirror for my [codeberg](https://codeberg.org/Tahoso/azul-box)**
+**The Github repo is just a mirror for my [codeberg](https://codeberg.org/Tahoso/azul-box)**
 
 **If you want to install binary please check out on my [codeberg](https://codeberg.org/Tahoso/azul-box)**
 
