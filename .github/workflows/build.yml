@@ -27,11 +27,17 @@ jobs:
       - name: output dir
         run: mkdir -p output
 
-      - name: copy linux bin
-        run: cp target/x86_64-unknown-linux-gnu/release/azul-box output/azul-box
+      - name: Tar x86_64 binary
+        run: tar -czvf azul-box-x86_64-unknown-linux-gnu.tar.gz -C target/x86_64-unknown-linux-gnu/release azul-box
 
-      - name: copy windows bin
-        run: cp target/x86_64-pc-windows-gnu/release/azul-box.exe output/azul-box.exe
+      - name: copy linux tag
+        run: cp azul-box-x86_64-unknown-linux-gnu.tar.gz output/azul-box-x86_64-unknown-linux-gnu.tar.gz
+
+      - name: Zip windows binary
+        run: zip -j azul-box.exe-x86_64-pc-windows-gnu.zip target/x86_64-pc-windows-gnu/release/azul-box.exe
+
+      - name: copy windows zip
+        run: cp azul-box.exe-x86_64-pc-windows-gnu.zip output/azul-box.exe-x86_64-pc-windows-gnu.zip
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
