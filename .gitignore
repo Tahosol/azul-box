@@ -4,3 +4,4 @@ bin-script/azul-box
 desktop/flatpak/.venv
 desktop/flatpak/.flatpak-builder
 desktop/flatpak/build-dir
+desktop/flatpak/flatpak-cargo-generator.py
