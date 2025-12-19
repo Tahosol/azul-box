@@ -218,13 +218,25 @@ pub fn install(dir: &Path) -> Result<(), Box<dyn Error>> {
         Ok(data) => {
             let mut data_struct: VersionJson = serde_json::from_str(&data)?;
             if data_struct.deno != deno_github.name {
-                data_struct.yt_dlp = yt_dlp_install(dir, &yt_github)?.name;
+                println!(
+                    "Update avaiable for Deno from {} to {}",
+                    data_struct.deno, deno_github.name
+                );
+                data_struct.deno = deno_install(dir, &deno_github)?.name;
             }
             if data_struct.ffmpeg != ffmpeg_github.name {
+                println!(
+                    "Update avaiable for ffmpeg from {} to {}",
+                    data_struct.ffmpeg, ffmpeg_github.name
+                );
                 data_struct.ffmpeg = ffmpeg_install(dir, &ffmpeg_github)?.name;
             }
             if data_struct.yt_dlp != yt_github.name {
-                data_struct.deno = deno_install(dir, &deno_github)?.name;
+                println!(
+                    "Update avaiable for yt_dlp from {} to {}",
+                    data_struct.yt_dlp, yt_github.name
+                );
+                data_struct.yt_dlp = yt_dlp_install(dir, &yt_github)?.name;
             }
             let datas = serde_json::to_string(&data_struct)?;
             fs::write(&saved_data_location, datas)?;
