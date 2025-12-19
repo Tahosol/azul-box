@@ -3,7 +3,7 @@ use std::error::Error;
 use rodio::Decoder;
 
 pub fn done_sound() -> Result<(), Box<dyn Error>> {
-    let source = include_bytes!("../../../assets/sounds/completion-success.oga");
+    let source = include_bytes!("../../../assets/sounds/success.wav");
     let stream_handle = rodio::OutputStreamBuilder::open_default_stream()?;
     let sink = rodio::Sink::connect_new(stream_handle.mixer());
     let source = Decoder::new(std::io::Cursor::new(source)).unwrap();
@@ -12,7 +12,7 @@ pub fn done_sound() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 pub fn fail_sound() -> Result<(), Box<dyn Error>> {
-    let source = include_bytes!("../../../assets/sounds/completion-fail.oga");
+    let source = include_bytes!("../../../assets/sounds/fail.wav");
     let stream_handle = rodio::OutputStreamBuilder::open_default_stream()?;
     let sink = rodio::Sink::connect_new(stream_handle.mixer());
     let source = Decoder::new(std::io::Cursor::new(source)).unwrap();
@@ -21,7 +21,7 @@ pub fn fail_sound() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 pub fn button_sound() -> Result<(), Box<dyn Error>> {
-    let source = include_bytes!("../../../assets/sounds/button-pressed-modifier.oga");
+    let source = include_bytes!("../../../assets/sounds/button.wav");
     let stream_handle = rodio::OutputStreamBuilder::open_default_stream()?;
     let sink = rodio::Sink::connect_new(stream_handle.mixer());
     let source = Decoder::new(std::io::Cursor::new(source)).unwrap();
