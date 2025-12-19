@@ -24,20 +24,17 @@ jobs:
       - name: Build the executable
         run: cargo build --release --target x86_64-unknown-linux-gnu --target x86_64-pc-windows-gnu
 
-      - name: Tar x86_64 binary
-        run: tar -czvf azul-box-x86_64.tar.gz -C target/release/azul-box
+      - name: output dir
+        run: mkdir -p output
 
-      - name: Zip windows binary
-        run: zip -j azul-box-windows-x86_64.zip target/x86_64-pc-windows-gnu/release/azul-box.exe
+      - name: copy linux bin
+        run: cp target/release/azul-box output/azul-box
 
-      - name: Generate SHA256 checksums
-        run: |
-          shasum -a 256 azul-box-x86_64.tar.gz > azul-box-x86_64.tar.gz.sha256
-          shasum -a 256 azul-box-windows-x86_64.zip > azul-box-windows-x86_64.zip.sha256
+      - name: copy windows bin
+        run: cp target/x86_64-pc-windows-gnu/release/azul-box.exe output/azul-box.exe
 
-      - name: Upload release binaries
-        uses: alexellis/upload-assets@0.4.0
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          asset_paths: '["azul-box-x86_64.tar.gz", "azul-box-windows-x86_64.zip", "azul-box-x86_64.tar.gz.sha256", "azul-box-windows-x86_64.zip.sha256"]'
+          name: binaries
+          path: output/*
