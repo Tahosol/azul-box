@@ -8,7 +8,9 @@
 
 ## Status
 
-**IMPORTANT: I won't be building new releases anymore.**
+**This is just a mirror for my [codeberg](https://codeberg.org/Tahoso/azul-box)**
+
+**If you want to install binary please check out on my [codeberg](https://codeberg.org/Tahoso/azul-box)**
 
 This project is in a maintenance mode-ish state. I'll fix any app-breaking bugs that appear from time to time. PRs are still welcome for features, bug fixes, etc. I may still add features when I feel like it. The reason for this status is that the software is completely functional for my use case, and the code is kinda sucky which make me feel lazy.
 
@@ -67,22 +69,11 @@ sudo chmod +x install.sh
 ./install.sh
 ```
 
-~~Use this follow command to build then install the app. You will still need to install dependencies before run the install script.~~
-
-~~### Debian based distro~~
-
-~~- Download the deb file from [release](https://github.com/musdx/azul-box/releases)~~
-~~- Install it via apt~~
-~~- Enjoy!!!~~
-
-~~### Any other distro~~
-
-~~- Download the bin.zip file from [release](https://github.com/musdx/azul-box/releases)~~
-~~- Unzip it~~
-~~- Run the install.sh file init~~
-~~- Enjoy!!!~~
+Or download the binary on [codeberg](https://codeberg.org/Tahoso/azul-box)
 
 ## Uninstallation
+
+if you used the `install.sh` script:
 
 ```
 sudo rm /usr/bin/azulbox
