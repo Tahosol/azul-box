@@ -1,0 +1,45 @@
+name: Rust
+
+on:
+  push:
+    tags:
+      - 'v*'
+  
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Linux and Windows Cross Compilers
+      run: sudo apt-get install --yes --no-install-recommends musl-tools gcc-mingw-w64-x86-64-win32
+
+    - name: Install rustup targets
+      run: rustup target add x86_64-unknown-linux-gnu x86_64-pc-windows-gnu
+
+    - name: Build the executable
+      run: cargo build --release --target x86_64-unknown-linux-gnu --target x86_64-pc-windows-gnu
+
+    - name: Tar x86_64 binary
+      run: tar -czvf azul-box-x86_64.tar.gz -C target/release/azul-box
+
+    - name: Zip windows binary
+      run: zip -j azul-box-windows-x86_64.zip target/x86_64-pc-windows-gnu/release/azul-box.exe
+
+    - name: Generate SHA256 checksums
+      run: |
+        shasum -a 256 azul-box-x86_64.tar.gz > azul-box-x86_64.tar.gz.sha256
+        shasum -a 256 azul-box-windows-x86_64.zip > azul-box-windows-x86_64.zip.sha256
+
+    - name: Upload release binaries
+      uses: alexellis/upload-assets@0.4.0
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        asset_paths: '["azul-box-x86_64.tar.gz", "azul-box-windows-x86_64.zip", "azul-box-x86_64.tar.gz.sha256", "azul-box-windows-x86_64.zip.sha256"]'
