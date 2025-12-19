@@ -19,16 +19,16 @@ jobs:
         run: sudo apt-get install --yes --no-install-recommends libasound2-dev musl-tools gcc-mingw-w64-x86-64-win32
 
       - name: Install rustup targets
-        run: rustup target add x86_64-unknown-linux-gnu x86_64-pc-windows-gnu
+        run: rustup target add x86_64-unknown-linux-musl x86_64-pc-windows-gnu
 
       - name: Build the executable
-        run: cargo build --release --target x86_64-unknown-linux-gnu --target x86_64-pc-windows-gnu
+        run: cargo build --release --target x86_64-unknown-linux-musl --target x86_64-pc-windows-gnu
 
       - name: output dir
         run: mkdir -p output
 
       - name: copy linux bin
-        run: cp target/release/azul-box output/azul-box
+        run: cp target/x86_64-unknown-linux-musl/release/azul-box output/azul-box
 
       - name: copy windows bin
         run: cp target/x86_64-pc-windows-gnu/release/azul-box.exe output/azul-box.exe
