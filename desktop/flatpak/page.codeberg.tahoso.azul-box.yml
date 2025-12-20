@@ -1,4 +1,4 @@
-app-id: page.codeberg.tahoso.azul_box
+app-id: page.codeberg.tahoso.azul-box
 runtime: org.freedesktop.Platform
 runtime-version: "25.08"
 sdk: org.freedesktop.Sdk
@@ -33,6 +33,5 @@ modules:
     sources:
       - type: git
         url: https://codeberg.org/Tahoso/azul-box.git
-        tag: v0.2.0-5
-        commit: "b98ddcac54fa9f52ede17ff2e70e7eaf32ac6fb8"
+        commit: "testing"
       - cargo-sources.json

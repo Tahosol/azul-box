@@ -7,10 +7,10 @@ YELLOW='\033[1;32m'
 
 echo -e ${YELLOW}copy content
 
-sudo install -Dm 644 logo.svg /usr/share/icons/hicolor/scalable/apps/page.codeberg.tahoso.azul_box.svg
+sudo install -Dm 644 logo.svg /usr/share/icons/hicolor/scalable/apps/page.codeberg.tahoso.azul-box.svg
 
 sudo install -Dm 755 azul-box /usr/bin/azulbox
 
-sudo install -Dm 644 azul_box.desktop /usr/share/applications/page.codeberg.tahoso.azul_box.desktop
+sudo install -Dm 644 azul_box.desktop /usr/share/applications/page.codeberg.tahoso.azul-box.desktop
 
 echo -e ${RED}Remember to install dependencies! Check https://codeberg.org/Tahoso/azul-box#dependencies for more info

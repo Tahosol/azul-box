@@ -77,8 +77,8 @@ if you used the `install.sh` script:
 
 ```
 sudo rm /usr/bin/azulbox
-sudo rm /usr/share/icons/hicolor/scalable/apps/page.codeberg.tahoso.azul_box.svg
-sudo rm /usr/share/applications/page.codeberg.tahoso.azul_box.desktop
+sudo rm /usr/share/icons/hicolor/scalable/apps/page.codeberg.tahoso.azul-box.svg
+sudo rm /usr/share/applications/page.codeberg.tahoso.azul-box.desktop
 ```
 
 or just uninstall via your package manager if you install via apt

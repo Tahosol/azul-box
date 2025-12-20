@@ -5,3 +5,5 @@ desktop/flatpak/.venv
 desktop/flatpak/.flatpak-builder
 desktop/flatpak/build-dir
 desktop/flatpak/flatpak-cargo-generator.py
+desktop/flatpak/builddir
+desktop/flatpak/repo
