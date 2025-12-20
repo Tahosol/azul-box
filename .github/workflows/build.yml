@@ -27,6 +27,15 @@ jobs:
       - name: output dir
         run: mkdir -p output
 
+      - name: bin-script prepare
+        run: cp target/x86_64-unknown-linux-gnu/release/azul-box bin-script/azul-box
+
+      - name: Tar bin script
+        run: tar -czvf azul-box-script-install-x86_64-unknown-linux-gnu.tar.gz bin-script
+
+      - name: copy Tar bin script
+        run: cp azul-box-script-install-x86_64-unknown-linux-gnu.tar.gz output/azul-box-script-install-x86_64-unknown-linux-gnu.tar.gz
+
       - name: Tar x86_64 binary
         run: tar -czvf azul-box-x86_64-unknown-linux-gnu.tar.gz -C target/x86_64-unknown-linux-gnu/release azul-box
 
