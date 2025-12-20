@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <component type="desktop-application">
-  <id>page.codeberg.tahoso.azul_box</id>
+  <id>page.codeberg.tahoso.azul-box</id>
 
   <name>Azul Box</name>
   <summary>audio/video conversion and youtube downloader</summary>
@@ -33,7 +33,7 @@
 
   <launchable
         type="desktop-id"
-    >page.codeberg.tahoso.azul_box.desktop</launchable>
+    >page.codeberg.tahoso.azul-box.desktop</launchable>
   <screenshots>
     <screenshot type="default">
       <image
