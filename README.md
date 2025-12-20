@@ -77,7 +77,7 @@ if you used the `install.sh` script:
 
 ```
 sudo rm /usr/bin/azulbox
-sudo rm /usr/share/icons/hicolor/256x256/apps/page.codeberg.tahoso.azul_box.svg
+sudo rm /usr/share/icons/hicolor/scalable/apps/page.codeberg.tahoso.azul_box.svg
 sudo rm /usr/share/applications/page.codeberg.tahoso.azul_box.desktop
 ```
 
