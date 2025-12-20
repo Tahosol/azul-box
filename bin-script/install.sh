@@ -7,7 +7,7 @@ YELLOW='\033[1;32m'
 
 echo -e ${YELLOW}copy content
 
-sudo install -Dm 644 logo.png /usr/share/icons/hicolor/256x256/apps/page.codeberg.tahoso.azul_box.png
+sudo install -Dm 644 logo.svg /usr/share/icons/hicolor/scalable/apps/page.codeberg.tahoso.azul_box.svg
 
 sudo install -Dm 755 azul-box /usr/bin/azulbox
 
