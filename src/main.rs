@@ -75,32 +75,32 @@ impl eframe::App for MainApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let mut style = (*ctx.style()).clone();
 
-        if let Ok(false) = self.app_data.version.try_exists()
-            && !self
-                .is_install_depen
-                .load(std::sync::atomic::Ordering::Relaxed)
-        {
-            self.is_install_depen
-                .store(true, std::sync::atomic::Ordering::Relaxed);
-            let _ = fs::create_dir(&self.app_data.app_data);
-
-            let progress = self.is_install_depen.clone();
-            let dir = self.app_data.app_data.clone();
-
-            tokio::task::spawn(async move {
-                match install(&dir) {
-                    Ok(_) => {
-                        progress.store(false, std::sync::atomic::Ordering::Relaxed);
-                        println!("Updated dependencies");
-                    }
-                    Err(e) => {
-                        println!("dependencies install error {e}");
-                    }
-                }
-            });
-        }
         // println!("{:?}", self.is_install_depen);
         if !self.run_on_start {
+            if let Ok(false) = self.app_data.version.try_exists()
+                && !self
+                    .is_install_depen
+                    .load(std::sync::atomic::Ordering::Relaxed)
+            {
+                self.is_install_depen
+                    .store(true, std::sync::atomic::Ordering::Relaxed);
+                let _ = fs::create_dir(&self.app_data.app_data);
+
+                let progress = self.is_install_depen.clone();
+                let dir = self.app_data.app_data.clone();
+
+                tokio::task::spawn(async move {
+                    match install(&dir) {
+                        Ok(_) => {
+                            progress.store(false, std::sync::atomic::Ordering::Relaxed);
+                            println!("Updated dependencies");
+                        }
+                        Err(e) => {
+                            println!("dependencies install error {e}");
+                        }
+                    }
+                });
+            }
             config_file_default();
             self.run_on_start = true;
         };
