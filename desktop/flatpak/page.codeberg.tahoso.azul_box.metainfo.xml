@@ -13,7 +13,7 @@
   <url type="donation">https://liberapay.com/Tahoso/donate</url>
 
   <metadata_license>MIT</metadata_license>
-  <project_license>GPL-2.0-or-later</project_license>
+  <project_license>GPL-3.0-only</project_license>
 
   <requires>
     <control>keyboard</control>
