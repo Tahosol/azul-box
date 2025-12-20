@@ -13,7 +13,7 @@ use ureq::get;
 
 use crate::USERAGENT;
 use crate::app::cores::depen_manager::Depen;
-use crate::app::cores::notify::{button_sound, done_sound, notification_done};
+use crate::app::cores::notify::{button_sound, done_sound, fail_sound, notification_done};
 
 pub struct PinterstDownload {
     pub link: String,
@@ -98,10 +98,19 @@ impl PinterstDownload {
                     let yt_dlp_path = depen.yt_dlp.clone();
 
                     tokio::task::spawn(async move {
-                        download(link, directory, videoornot, &yt_dlp_path);
-                        complete.store(true, Ordering::Relaxed);
-                        doing.store(false, Ordering::Relaxed);
-                        let _ = done_sound();
+                        match download(link, directory, videoornot, &yt_dlp_path) {
+                            Ok(_) => {
+                                complete.store(true, Ordering::Relaxed);
+                                doing.store(false, Ordering::Relaxed);
+                                let _ = done_sound();
+                            }
+                            Err(e) => {
+                                println!("Fail pinterest dl: {e}");
+                                complete.store(false, Ordering::Relaxed);
+                                doing.store(false, Ordering::Relaxed);
+                                let _ = fail_sound();
+                            }
+                        }
                     });
                 }
             }
@@ -109,13 +118,17 @@ impl PinterstDownload {
     }
 }
 
-fn download(link: String, directory: String, videoorimg: bool, yt_dlp_path: &Path) {
+fn download(
+    link: String,
+    directory: String,
+    videoorimg: bool,
+    yt_dlp_path: &Path,
+) -> Result<(), Box<dyn Error>> {
     if videoorimg {
         let output = Command::new(yt_dlp_path)
             .arg(&link)
             .current_dir(&directory)
-            .output()
-            .expect("Something");
+            .output()?;
 
         let log = String::from_utf8(output.stdout).unwrap_or_else(|_| "Life suck".to_string());
         println!("{log}");
@@ -123,6 +136,7 @@ fn download(link: String, directory: String, videoorimg: bool, yt_dlp_path: &Pat
     } else if !videoorimg {
         let _ = pin_pic_dl(&link, &directory);
     }
+    Ok(())
 }
 
 fn pin_pic_dl(link: &String, directory: &String) -> Result<(), Box<dyn Error>> {
@@ -139,13 +153,12 @@ fn pin_pic_dl(link: &String, directory: &String) -> Result<(), Box<dyn Error>> {
             println!("First image URL: {}", src);
             let filename = src.split("/").last().unwrap();
 
-            let response = get(src).call().expect("Failed to download image");
+            let response = get(src).call()?;
 
             let (_, body) = response.into_parts();
 
-            let mut file =
-                File::create(Path::new(directory).join(filename)).expect("Failed to create file");
-            copy(&mut body.into_reader(), &mut file).expect("Failed to save image");
+            let mut file = File::create(Path::new(directory).join(filename))?;
+            copy(&mut body.into_reader(), &mut file)?;
 
             println!("Image downloaded successfully: {}", filename);
         } else {

@@ -66,7 +66,10 @@ pub fn video_download(
         yt.arg("-f")
             .arg("bestvideo[height<={res}][ext=mp4]+bestaudio");
     }
-    let output = yt.arg(link).output().expect("Fail To Run Yt-dlp");
+    let output = yt
+        .arg(link)
+        .output()
+        .expect("Failed to execute yt-dlp in Music");
 
     let log = String::from_utf8_lossy(&output.stdout);
     println!("{log}");
@@ -203,7 +206,7 @@ impl Music {
             }
         }
         yt.arg(&self.link);
-        let output = yt.output().expect("Failed to execute command");
+        let output = yt.output().expect("Failed to execute yt-dlp in Music");
 
         let log = String::from_utf8(output.stdout).unwrap_or_default();
         println!("{log}");
