@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <component type="desktop-application">
-  <id>io.codeberg.tahoso.azul_box</id>
+  <id>page.codeberg.tahoso.azul_box</id>
 
   <name>Azul Box</name>
   <summary>A wraper for ffmpeg and yt-dlp written in rust.</summary>
@@ -21,7 +21,9 @@
     </p>
   </description>
 
-  <launchable type="desktop-id">io.codeberg.tahoso.azul_box.desktop</launchable>
+  <launchable
+        type="desktop-id"
+    >page.codeberg.tahoso.azul_box.desktop</launchable>
   <screenshots>
     <screenshot type="default">
       <image

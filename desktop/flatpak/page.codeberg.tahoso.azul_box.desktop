@@ -6,6 +6,6 @@ Name=Azul Box
 Comment=A wraper for ffmpeg and yt-dlp written in rust.
 Categories=AudioVideo;Music;
 
-Icon=io.codeberg.tahoso.azul_box
+Icon=page.codeberg.tahoso.azul_box
 Exec=azul-box
 Terminal=false
