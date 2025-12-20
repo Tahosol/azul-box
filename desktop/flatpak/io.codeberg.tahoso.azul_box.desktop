@@ -7,5 +7,5 @@ Comment=A wraper for ffmpeg and yt-dlp written in rust.
 Categories=AudioVideo;Music;
 
 Icon=azul-box
-Exec=azul-box
+Exec=io.codeberg.tahoso.azul_box
 Terminal=false
