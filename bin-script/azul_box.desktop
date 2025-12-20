@@ -1,8 +1,8 @@
 [Desktop Entry]
 Name=Azul box
-Comment=A box that i like
+Comment=A wraper for ffmpeg and yt-dlp written in rust.
 Exec=/usr/bin/azulbox
-Icon=/usr/share/icons/azul_box.png
+Icon=/usr/share/icons/hicolor/256x256/apps/azul_box.png
 Terminal=false
 Type=Application
-Categories=AudioVideo;
+Categories=AudioVideo;Music;
