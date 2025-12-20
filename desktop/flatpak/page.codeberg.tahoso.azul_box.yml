@@ -27,7 +27,7 @@ modules:
       - cargo --offline fetch --manifest-path Cargo.toml --verbose
       - cargo build --offline --release --all-features
       - install -Dm0755 target/release/azul-box ${FLATPAK_DEST}/bin/azul-box
-      - install -Dm0644 assets/logo.png ${FLATPAK_DEST}/share/icons/hicolor/256x256/apps/${FLATPAK_ID}.png
+      - install -Dm0644 assets/logo-rounded.svg ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/${FLATPAK_ID}.png
       - install -Dm0644 desktop/flatpak/${FLATPAK_ID}.desktop ${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop
       - install -Dm0644 desktop/flatpak/${FLATPAK_ID}.metainfo.xml ${FLATPAK_DEST}/share/metainfo/${FLATPAK_ID}.metainfo.xml
     sources:
