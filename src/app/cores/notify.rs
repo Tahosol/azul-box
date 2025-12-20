@@ -34,7 +34,6 @@ pub fn notification_done(info: &str) -> Result<(), Box<dyn Error>> {
     Notification::new()
         .summary("Azul Box")
         .body(format!("Your {} is done!", info).as_str())
-        .icon("io.codeberg.tahoso.azul_box")
         .show()?;
     Ok(())
 }
@@ -42,7 +41,6 @@ pub fn notification_fail(info: &str) -> Result<(), Box<dyn Error>> {
     Notification::new()
         .summary("Azul Box")
         .body(format!("Your {} FAIL!!", info).as_str())
-        .icon("io.codeberg.tahoso.azul_box")
         .show()?;
     Ok(())
 }
