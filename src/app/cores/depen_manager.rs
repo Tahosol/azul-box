@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::env::consts::OS;
 use std::fs::{self, File};
 use std::io::copy;
 use std::path::PathBuf;
@@ -6,7 +7,6 @@ use std::process::Command;
 use std::thread;
 use std::{error::Error, path::Path};
 
-use crate::OS;
 use crate::USERAGENT;
 
 pub struct Depen {
@@ -184,7 +184,16 @@ fn ffmpeg_install(dir: &Path, github: &GithubRelease) -> Result<GithubRelease, B
 
 fn deno_install(dir: &Path, github: &GithubRelease) -> Result<GithubRelease, Box<dyn Error>> {
     let file = match OS {
-        "linux" => "deno-x86_64-unknown-linux-gnu.zip",
+        "linux" => {
+            #[cfg(target_arch = "aarch64")]
+            {
+                " deno-aarch64-unknown-linux-gnu.zip "
+            }
+            #[cfg(target_arch = "x86_64")]
+            {
+                "deno-x86_64-unknown-linux-gnu.zip"
+            }
+        }
         "windows" => "deno-x86_64-pc-windows-msvc.zip",
         _ => return Err("Wrong OS".into()),
     };
