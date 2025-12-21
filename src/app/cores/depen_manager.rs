@@ -187,7 +187,7 @@ fn deno_install(dir: &Path, github: &GithubRelease) -> Result<GithubRelease, Box
         "linux" => {
             #[cfg(target_arch = "aarch64")]
             {
-                " deno-aarch64-unknown-linux-gnu.zip "
+                "deno-aarch64-unknown-linux-gnu.zip"
             }
             #[cfg(target_arch = "x86_64")]
             {
