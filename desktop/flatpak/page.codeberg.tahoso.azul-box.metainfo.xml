@@ -38,12 +38,12 @@
     <screenshot type="default">
       <image
             >https://codeberg.org/Tahoso/azul-box/raw/branch/master/assets/pic1.webp</image>
-            <caption>Azulbox in dark theme</caption>
+            <caption>Azulbox in light theme</caption>
     </screenshot>
     <screenshot>
       <image
             >https://codeberg.org/Tahoso/azul-box/raw/branch/master/assets/pic2.webp</image>
-            <caption>Azulbox in light theme</caption>
+            <caption>Azulbox in dark theme</caption>
     </screenshot>
   </screenshots>
   <categories>
