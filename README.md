@@ -4,6 +4,10 @@
 
 <img src="./assets/logo.png" width="200"></img>
 
+<a href='https://flathub.org/apps/page.codeberg.tahoso.azul-box'>
+  <img width='240' alt='Get it on Flathub' src='https://flathub.org/api/badge?locale=en'/>
+</a>
+
 <noscript><a href="https://liberapay.com/Tahoso/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a></noscript>
 
 ## Status
