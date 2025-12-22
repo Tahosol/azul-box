@@ -64,6 +64,12 @@ sudo dnf install cargo alsa-lib-devel ffmpeg-free python3.11
 
 ## Installation
 
+flatpak:
+
+```
+flatpak install flathub page.codeberg.tahoso.azul-box
+```
+
 Build from source(make sure you have installed all dependencies first):
 
 ```
