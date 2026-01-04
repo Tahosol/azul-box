@@ -2,6 +2,7 @@ pub mod config;
 pub mod cover;
 pub mod depen_manager;
 pub mod files;
+pub mod kugou;
 pub mod lang;
 pub mod lrclib;
 pub mod lyrics;

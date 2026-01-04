@@ -1,7 +1,7 @@
 use crate::app::cores::depen_manager::Depen;
 use crate::app::cores::lrclib::lrclib_fetch;
-use crate::app::cores::musicbrainz;
 use crate::app::cores::notify::{notification_done, notification_fail};
+use crate::app::cores::{kugou, musicbrainz};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -98,6 +98,7 @@ pub struct Music {
     pub sim_rate: i8,
     pub musicbrainz: bool,
     pub lrclib: bool,
+    pub kugou_lyrics: bool,
     pub cookies: Option<String>,
     pub use_cookies: bool,
     pub crop_cover: bool,
@@ -313,6 +314,9 @@ impl Music {
                 }
                 if self.lrclib {
                     let _ = lrclib_fetch(&music_file, &self.lang_code);
+                }
+                if self.kugou_lyrics {
+                    let _ = kugou::get(&music_file, &self.lang_code);
                 }
             }
         }

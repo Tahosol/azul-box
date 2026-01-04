@@ -23,6 +23,7 @@ pub struct MusicDownload {
     pub sim_rate: i8,
     pub musicbrainz: bool,
     pub lrclib: bool,
+    pub kugou_lyrics: bool,
     pub config_path: PathBuf,
     pub cookies: Option<String>,
     pub use_cookies: bool,
@@ -52,6 +53,7 @@ impl Default for MusicDownload {
             status: Arc::new(AtomicI8::new(0)), // 0 = nothing / 1 = pending / 2 = Done / 3 = Fail
             format: configs.music_dl.format,
             lyrics: configs.music_dl.lyrics,
+            kugou_lyrics: configs.music_dl.kugou_lyrics,
             frag: configs.music_dl.fragments,
             sub_lang: configs.universal.language,
             auto_lyric: configs.music_dl.auto_gen_sub,
@@ -260,6 +262,19 @@ impl MusicDownload {
                                 }
                             }
                         }
+                        let kugou = ui.checkbox(&mut self.kugou_lyrics, "kugou lyrics");
+                        if kugou.changed() {
+                            match config::modifier_config(&self.config_path, |cfg| {
+                                cfg.music_dl.kugou_lyrics = self.kugou_lyrics
+                            }) {
+                                Ok(_) => {
+                                    println!("music_dl: Changed kugou_lyrics")
+                                }
+                                Err(e) => {
+                                    println!("music_dl: Fail change kugou_lyrics {e}")
+                                }
+                            }
+                        }
                     } else if self.format != 5 {
                         ui.horizontal(|ui| {
                             ui.label("On/Off: ");
@@ -354,6 +369,7 @@ impl MusicDownload {
                     let playlist_cover = self.use_playlist_cover;
                     let sanitization = self.sanitize_lyrics;
                     let yt_dlp_path = depen.yt_dlp.clone();
+                    let kugou = self.kugou_lyrics;
 
                     tokio::task::spawn(async move {
                         let yt = ytdlp::Music {
@@ -367,6 +383,7 @@ impl MusicDownload {
                             sim_rate: sim,
                             musicbrainz: brain,
                             lrclib: lrclib,
+                            kugou_lyrics: kugou,
                             cookies: cook,
                             use_cookies: use_cook,
                             crop_cover: crop,
