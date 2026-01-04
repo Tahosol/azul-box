@@ -13,7 +13,7 @@ use ureq::get;
 
 use crate::USERAGENT;
 use crate::app::cores::depen_manager::Depen;
-use crate::app::cores::notify::{button_sound, done_sound, fail_sound, notification_done};
+use crate::app::cores::notify::{button_sound, done_sound, fail_sound};
 
 pub struct PinterstDownload {
     pub link: String,
@@ -132,7 +132,6 @@ fn download(
 
         let log = String::from_utf8(output.stdout).unwrap_or_else(|_| "Life suck".to_string());
         println!("{log}");
-        let _ = notification_done("pinterest downloader");
     } else if !videoorimg {
         let _ = pin_pic_dl(&link, &directory);
     }
@@ -167,6 +166,5 @@ fn pin_pic_dl(link: &String, directory: &String) -> Result<(), Box<dyn Error>> {
     } else {
         println!("No images found in the document.");
     }
-    let _ = notification_done("pinterest downloader");
     Ok(())
 }

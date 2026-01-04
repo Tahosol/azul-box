@@ -1,6 +1,5 @@
 use crate::app::cores::depen_manager::Depen;
 use crate::app::cores::lrclib::lrclib_fetch;
-use crate::app::cores::notify::{notification_done, notification_fail};
 use crate::app::cores::{kugou, musicbrainz};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -76,11 +75,6 @@ pub fn video_download(
 
     let status: i8 = if output.status.success() { 2 } else { 3 };
 
-    if status == 2 {
-        let _ = notification_done("video downloader");
-    } else {
-        let _ = notification_fail("video downloader");
-    }
     status
 }
 
@@ -329,11 +323,6 @@ impl Music {
 
         let status = if output.status.success() { 2 } else { 3 };
 
-        if status == 2 {
-            let _ = notification_done("music downloader");
-        } else {
-            let _ = notification_fail("music downloader");
-        }
         status
     }
 }

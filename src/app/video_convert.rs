@@ -6,9 +6,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicI8, Ordering};
 
 use crate::app::cores::depen_manager::Depen;
-use crate::app::cores::notify::{
-    button_sound, done_sound, fail_sound, notification_done, notification_fail,
-};
+use crate::app::cores::notify::{button_sound, done_sound, fail_sound};
 
 pub struct VideoConvert {
     pub out_directory: String,
@@ -196,10 +194,5 @@ fn download(input: String, directory: String, format_out: String, ffmpeg: Option
 
     println!("{status}");
     let status: i8 = if status.success() { 2 } else { 3 };
-    if status == 2 {
-        let _ = notification_done("video converter");
-    } else {
-        let _ = notification_fail("video converter");
-    }
     status
 }

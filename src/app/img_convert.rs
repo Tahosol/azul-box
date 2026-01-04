@@ -1,7 +1,5 @@
 use crate::app::cores::depen_manager::Depen;
-use crate::app::cores::notify::{
-    button_sound, done_sound, fail_sound, notification_done, notification_fail,
-};
+use crate::app::cores::notify::{button_sound, done_sound, fail_sound};
 use eframe::egui::{self, Color32};
 use native_dialog::DialogBuilder;
 use std::path::{Path, PathBuf};
@@ -190,10 +188,5 @@ fn download(input: String, directory: String, format_out: String, ffmpeg: Option
 
     println!("{status}");
     let status: i8 = if status.success() { 2 } else { 3 };
-    if status == 2 {
-        let _ = notification_done("image converter");
-    } else {
-        let _ = notification_fail("image converter");
-    }
     status
 }
