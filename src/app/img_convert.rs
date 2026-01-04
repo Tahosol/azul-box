@@ -157,6 +157,9 @@ impl ImgConvert {
 }
 
 fn download(input: String, directory: String, format_out: String, ffmpeg: Option<PathBuf>) -> i8 {
+    if input.is_empty() {
+        return 3;
+    }
     let filename = Path::new(&input)
         .file_name()
         .expect("Fail to unwrap filename in img_convert")
