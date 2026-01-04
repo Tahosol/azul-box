@@ -39,8 +39,20 @@ fn save_config(config: &Config, path: &Path) -> Result<(), Box<dyn std::error::E
 }
 pub fn load_config(path: &Path) -> Result<Config, Box<dyn std::error::Error>> {
     let toml_string = fs::read_to_string(path)?;
-    let config: Config = toml::from_str(&toml_string)?;
-    Ok(config)
+    let config = toml::from_str::<Config>(&toml_string);
+    match config {
+        Ok(configs) => {
+            return Ok(configs);
+        }
+        Err(_) => {
+            if get_config_file_path().exists() {
+                fs::remove_file(get_config_file_path())?;
+                config_file_default();
+                return Ok(Config::default());
+            }
+        }
+    };
+    Err("Fail to fix and read config file".into())
 }
 pub fn modifier_config<F>(path: &Path, modify_fn: F) -> Result<(), Box<dyn std::error::Error>>
 where
@@ -79,6 +91,7 @@ pub struct MusicDl {
     pub lyrics: bool,
     pub auto_gen_sub: bool,
     pub liblrc: bool,
+    pub kugou_lyrics: bool,
     pub musicbrainz: bool,
     pub threshold: i8,
     pub fragments: i8,
@@ -105,6 +118,7 @@ impl Default for Config {
                 lyrics: true,
                 auto_gen_sub: false,
                 liblrc: false,
+                kugou_lyrics: false,
                 musicbrainz: false,
                 threshold: 90,
                 fragments: 1,
