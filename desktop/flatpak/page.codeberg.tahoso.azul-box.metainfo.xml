@@ -75,6 +75,18 @@
           </ul>
       </description>
       </release>
+      <release version="v0.2.2" date="2026-1-4">
+        <url
+                type="details"
+            >https://codeberg.org/Tahoso/azul-box/releases/tag/v0.2.2</url>
+        <description>
+            <ul>
+              <li>support kugou lyrics</li>
+              <li>removed notification</li>
+              <li>new config fix</li>
+            </ul>
+        </description>
+        </release>
     </releases>
 
 </component>
