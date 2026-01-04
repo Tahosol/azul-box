@@ -8,6 +8,7 @@ use std::thread;
 use std::{error::Error, path::Path};
 
 use crate::USERAGENT;
+use crate::app::cores::notify::done_sound;
 
 pub struct Depen {
     pub app_data: PathBuf,
@@ -259,6 +260,7 @@ pub fn install(dir: &Path) -> Result<(), Box<dyn Error>> {
             fs::write(&saved_data_location, data)?;
         }
     }
+    let _ = done_sound();
     Ok(())
 }
 

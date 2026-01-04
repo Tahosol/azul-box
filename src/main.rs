@@ -10,6 +10,7 @@ use std::{
 use crate::app::cores::{
     config::config_file_default,
     depen_manager::{Depen, get_path, install},
+    notify::fail_sound,
     ytdlp,
 };
 use eframe::egui::{self, IconData, global_theme_preference_buttons};
@@ -97,6 +98,7 @@ impl eframe::App for MainApp {
                         }
                         Err(e) => {
                             println!("dependencies install error {e}");
+                            let _ = fail_sound();
                         }
                     }
                 });
@@ -162,6 +164,7 @@ impl eframe::App for MainApp {
                                         }
                                         Err(e) => {
                                             println!("dependencies install error {e}");
+                                            let _ = fail_sound();
                                         }
                                     }
                                 });
