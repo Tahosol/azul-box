@@ -11,6 +11,7 @@
   <url type="homepage">https://codeberg.org/Tahoso/azul-box</url>
   <url type="bugtracker">https://codeberg.org/Tahoso/azul-box/issues</url>
   <url type="donation">https://liberapay.com/Tahoso/donate</url>
+  <url type="vcs-browser">https://codeberg.org/Tahoso/azul-box</url>
 
   <metadata_license>MIT</metadata_license>
   <project_license>GPL-3.0-only</project_license>
