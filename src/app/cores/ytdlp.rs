@@ -306,12 +306,12 @@ impl Music {
                     Ok(_) => println!("Lyrics from youtube embeded"),
                     Err(e) => println!("Fail to use lyrics from youtube: {e}"),
                 }
-                if self.lrclib {
-                    let _ = lrclib_fetch(&music_file, &self.lang_code);
-                }
-                if self.kugou_lyrics {
-                    let _ = kugou::get(&music_file, &self.lang_code);
-                }
+            }
+            if self.lrclib {
+                let _ = lrclib_fetch(&music_file, &self.lang_code);
+            }
+            if self.kugou_lyrics {
+                let _ = kugou::get(&music_file, &self.lang_code);
             }
         }
         if let Some(trash_cover) = play {

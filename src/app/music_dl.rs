@@ -227,72 +227,73 @@ impl MusicDownload {
                     self.format_button(ui, "WAV", 5);
                 });
                 ui.menu_button("Lyrics", |ui| {
-                    if self.lyrics && self.format != 5 {
-                        ui.horizontal(|ui| {
-                            ui.label("On/Off: ");
-                            let check = ui.checkbox(&mut self.lyrics, "");
-                            if check.changed() {
-                                match config::modifier_config(&self.config_path, |cfg| {
-                                    cfg.music_dl.lyrics = self.lyrics
-                                }) {
-                                    Ok(_) => {
-                                        println!("music_dl: Changed lyric")
-                                    }
-                                    Err(e) => {
-                                        println!("music_dl: Fail change lyric {e}")
-                                    }
-                                }
+                    let lang_in = self.sub_lang.clone();
+                    self.sub_lang = LangThing::lang_chooser(ui, lang_in);
+
+                    ui.separator();
+
+                    let youtube_lyrics = ui.checkbox(&mut self.lyrics, "youtube lyrics");
+                    if youtube_lyrics.changed() {
+                        match config::modifier_config(&self.config_path, |cfg| {
+                            cfg.music_dl.lyrics = self.lyrics
+                        }) {
+                            Ok(_) => {
+                                println!("music_dl: Changed yt lyrics")
                             }
-                        });
+                            Err(e) => {
+                                println!("music_dl: Fail change yt lyrics {e}")
+                            }
+                        }
+                    }
+                    // ui.horizontal(|ui| {
+                    //     ui.label("On/Off: ");
+                    //     let check = ui.checkbox(&mut self.lyrics, "");
+                    //     if check.changed() {
+                    //         match config::modifier_config(&self.config_path, |cfg| {
+                    //             cfg.music_dl.lyrics = self.lyrics
+                    //         }) {
+                    //             Ok(_) => {
+                    //                 println!("music_dl: Changed lyric")
+                    //             }
+                    //             Err(e) => {
+                    //                 println!("music_dl: Fail change lyric {e}")
+                    //             }
+                    //         }
+                    //     }
+                    // });
+                    if self.lyrics {
                         ui.toggle_value(&mut self.sanitize_lyrics, "Sanitization");
-                        let lang_in = self.sub_lang.clone();
-                        self.sub_lang = LangThing::lang_chooser(ui, lang_in);
                         self.auto_on(ui);
-                        ui.separator();
-                        let check = ui.checkbox(&mut self.lrclib, "Liblrc lyrics");
-                        if check.changed() {
-                            match config::modifier_config(&self.config_path, |cfg| {
-                                cfg.music_dl.liblrc = self.lrclib
-                            }) {
-                                Ok(_) => {
-                                    println!("music_dl: Changed lrclib")
-                                }
-                                Err(e) => {
-                                    println!("music_dl: Fail change lrclib {e}")
-                                }
+                    }
+
+                    ui.separator();
+
+                    let check = ui.checkbox(&mut self.lrclib, "Liblrc lyrics");
+                    if check.changed() {
+                        match config::modifier_config(&self.config_path, |cfg| {
+                            cfg.music_dl.liblrc = self.lrclib
+                        }) {
+                            Ok(_) => {
+                                println!("music_dl: Changed lrclib")
+                            }
+                            Err(e) => {
+                                println!("music_dl: Fail change lrclib {e}")
                             }
                         }
-                        let kugou = ui.checkbox(&mut self.kugou_lyrics, "kugou lyrics");
-                        if kugou.changed() {
-                            match config::modifier_config(&self.config_path, |cfg| {
-                                cfg.music_dl.kugou_lyrics = self.kugou_lyrics
-                            }) {
-                                Ok(_) => {
-                                    println!("music_dl: Changed kugou_lyrics")
-                                }
-                                Err(e) => {
-                                    println!("music_dl: Fail change kugou_lyrics {e}")
-                                }
+                    }
+                    let kugou = ui.checkbox(&mut self.kugou_lyrics, "kugou lyrics");
+                    if kugou.changed() {
+                        match config::modifier_config(&self.config_path, |cfg| {
+                            cfg.music_dl.kugou_lyrics = self.kugou_lyrics
+                        }) {
+                            Ok(_) => {
+                                println!("music_dl: Changed kugou_lyrics")
+                            }
+                            Err(e) => {
+                                println!("music_dl: Fail change kugou_lyrics {e}")
                             }
                         }
-                    } else if self.format != 5 {
-                        ui.horizontal(|ui| {
-                            ui.label("On/Off: ");
-                            let check = ui.checkbox(&mut self.lyrics, "");
-                            if check.changed() {
-                                match config::modifier_config(&self.config_path, |cfg| {
-                                    cfg.music_dl.lyrics = self.lyrics
-                                }) {
-                                    Ok(_) => {
-                                        println!("music_dl: Changed lyric")
-                                    }
-                                    Err(e) => {
-                                        println!("music_dl: Fail change lyric {e}")
-                                    }
-                                }
-                            }
-                        });
-                    };
+                    }
                 });
                 self.music_brainz_button(ui);
 
