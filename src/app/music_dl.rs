@@ -245,22 +245,6 @@ impl MusicDownload {
                             }
                         }
                     }
-                    // ui.horizontal(|ui| {
-                    //     ui.label("On/Off: ");
-                    //     let check = ui.checkbox(&mut self.lyrics, "");
-                    //     if check.changed() {
-                    //         match config::modifier_config(&self.config_path, |cfg| {
-                    //             cfg.music_dl.lyrics = self.lyrics
-                    //         }) {
-                    //             Ok(_) => {
-                    //                 println!("music_dl: Changed lyric")
-                    //             }
-                    //             Err(e) => {
-                    //                 println!("music_dl: Fail change lyric {e}")
-                    //             }
-                    //         }
-                    //     }
-                    // });
                     if self.lyrics {
                         ui.toggle_value(&mut self.sanitize_lyrics, "Sanitization");
                         self.auto_on(ui);
