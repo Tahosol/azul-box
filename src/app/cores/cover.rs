@@ -13,8 +13,7 @@ fn square_crop_to_png(path: &Path) -> Result<(), ImageError> {
         let side = width.min(height);
         let x = (width - side) / 2;
         let y = (height - side) / 2;
-        let cropped = img.crop_imm(x, y, side, side);
-        cropped
+        img.crop_imm(x, y, side, side)
     } else {
         println!("crop report: skipp crop");
         img
@@ -22,7 +21,7 @@ fn square_crop_to_png(path: &Path) -> Result<(), ImageError> {
 
     final_img.save_with_format(&png_path, image::ImageFormat::Png)?;
 
-    if path != &png_path {
+    if path != png_path {
         std::fs::remove_file(path)?;
     }
 
@@ -35,7 +34,7 @@ fn to_png(path: &Path) -> Result<(), ImageError> {
         let png_path = path.with_extension("png");
 
         img.save_with_format(&png_path, image::ImageFormat::Png)?;
-        if path != &png_path {
+        if path != png_path {
             std::fs::remove_file(path)?;
         }
     }
@@ -57,7 +56,7 @@ pub fn embed(
     if let Some(name) = playlist_name
         && playlist_cover
     {
-        match file_finder(directory, &name, &["jpg", "jpeg", "png"]) {
+        match file_finder(directory, name, &["jpg", "jpeg", "png"]) {
             Some(raw_image) => {
                 let png = raw_image.with_extension("png");
                 println!("Cover report raw_image: {raw_image:?}");
@@ -96,7 +95,7 @@ use std::io::BufReader;
 fn embed_img_internal(cover: &Path, musicfile: &Path) -> Result<(), lofty::error::LoftyError> {
     let f = File::open(cover)?;
     let mut reader = BufReader::new(f);
-    let mut tagged_file = Probe::open(&musicfile)?.read()?;
+    let mut tagged_file = Probe::open(musicfile)?.read()?;
 
     let tag = match tagged_file.primary_tag_mut() {
         Some(primary_tag) => primary_tag,

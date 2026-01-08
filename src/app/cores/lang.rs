@@ -177,7 +177,7 @@ impl LangThing {
                 .max_height(350.0)
                 .show(ui, |ui| {
                     for (lang, code) in languages.iter().zip(language_codes.iter()) {
-                        if lang_in == code.to_string() {
+                        if lang_in == *code {
                             if ui
                                 .add(egui::Button::new(
                                     egui::RichText::new(*lang).color(Color32::LIGHT_BLUE),

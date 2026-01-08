@@ -12,7 +12,7 @@ pub fn work(
     directory: &str,
     sanitize: bool,
 ) -> Result<(), Box<dyn Error>> {
-    let lyrics_file = match file_finder(&directory, &filename, &["lrc"]) {
+    let lyrics_file = match file_finder(directory, filename, &["lrc"]) {
         Some(path) => path,
         None => {
             return Err("Lyrics file not found.".into());
@@ -29,7 +29,7 @@ pub fn work(
         use lofty::probe::Probe;
         use lofty::tag::Tag;
 
-        let mut tagged_file = Probe::open(&music_file)?.read()?;
+        let mut tagged_file = Probe::open(music_file)?.read()?;
 
         let tag = match tagged_file.primary_tag_mut() {
             Some(primary_tag) => primary_tag,
@@ -46,7 +46,7 @@ pub fn work(
             }
         };
         tag.insert_text(ItemKey::Lyrics, lyrics);
-        tag.save_to_path(&music_file, WriteOptions::default())?;
+        tag.save_to_path(music_file, WriteOptions::default())?;
 
         fs::remove_file(&lyrics_file)?;
     }
@@ -59,7 +59,7 @@ use regex::Regex;
 
 fn lyrics_cleaner(lyrics: &str) -> Result<String, Box<dyn Error>> {
     let lines: Vec<&str> = lyrics.lines().filter(|line| !line.is_empty()).collect();
-    let time_stamps = collect_time_stamp(&lyrics)?;
+    let time_stamps = collect_time_stamp(lyrics)?;
 
     let lrclines = turn_into_lrcline(time_stamps, lines)?;
     let mut cleaned_lrc: Vec<&LrcLine> = vec![];
@@ -157,8 +157,8 @@ impl LrcLine {
         self.clone()
     }
     fn is_similar(&self, compared: &LrcLine) -> Result<Similarity, Box<dyn Error>> {
-        let compared_in_self = self.content.contains(&compared.content.trim());
-        let self_in_compared = compared.content.contains(&self.content.trim());
+        let compared_in_self = self.content.contains(compared.content.trim());
+        let self_in_compared = compared.content.contains(self.content.trim());
         let minustime = self.timestamp.minus(&compared.timestamp)?;
 
         let strict_similar_content =
@@ -216,7 +216,7 @@ impl fmt::Display for TimeStamp {
 fn collect_time_stamp(lyrics: &str) -> Result<Vec<String>, Box<dyn Error>> {
     let time_stamp_regex = Regex::new(r"\[[0-9]+:[0-9]+\.[0-9]+\]").unwrap();
     Ok(time_stamp_regex
-        .find_iter(&lyrics)
+        .find_iter(lyrics)
         .map(|time| time.as_str().to_string())
         .collect())
 }

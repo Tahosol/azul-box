@@ -62,11 +62,11 @@ impl Default for MainApp {
             image_convert: app::img_convert::ImgConvert::default(),
             video_convert: app::video_convert::VideoConvert::default(),
             run_on_start: false,
-            yt_version: yt_version,
+            yt_version,
             yt: true,
             ffmpeg: false,
             pin: false,
-            app_data: app_data,
+            app_data,
             is_install_depen: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -76,7 +76,6 @@ impl eframe::App for MainApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let mut style = (*ctx.style()).clone();
 
-        // println!("{:?}", self.is_install_depen);
         if !self.run_on_start {
             if let Ok(false) = self.app_data.version.try_exists()
                 && !self

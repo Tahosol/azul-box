@@ -100,11 +100,10 @@ pub struct Music {
     pub sanitize_lyrics: bool,
     pub yt_dlp: PathBuf,
 }
-use regex::Regex;
-use scraper::{Html, Selector};
-use std::error::Error;
-#[allow(dead_code)]
+
+#[cfg(target_os = "windows")]
 fn get_name_from_title(html: &str) -> String {
+    use scraper::{Html, Selector};
     let doc = Html::parse_document(&html);
     let sel = Selector::parse("title").unwrap();
     for i in doc.select(&sel) {
@@ -112,8 +111,9 @@ fn get_name_from_title(html: &str) -> String {
     }
     String::new()
 }
-#[allow(dead_code)]
+#[cfg(target_os = "windows")]
 fn get_all_songs_name_from_regex_playlist(html: &str) -> Vec<String> {
+    use regex::Regex;
     let regex = Regex::new(r##""title":\{"runs":\[\{[^}]*\}\],"accessibility""##).unwrap();
     let mut list_of_song = vec![];
     for i in regex.find_iter(html) {
@@ -127,7 +127,7 @@ fn get_all_songs_name_from_regex_playlist(html: &str) -> Vec<String> {
 
     list_of_song
 }
-#[allow(dead_code)]
+#[cfg(target_os = "windows")]
 fn playlist_fix_url(url: &str) -> String {
     if url.contains("&list") {
         match url.split("&index=").nth(0) {
@@ -248,7 +248,7 @@ impl Music {
                 .map(|l| l.to_string())
                 .collect();
 
-            play = playlist_name.get(0).cloned();
+            play = playlist_name.first().cloned();
 
             files = log
                 .lines()
@@ -285,7 +285,7 @@ impl Music {
                 self.use_playlist_cover,
                 &music_file,
                 &self.directory,
-                &filename,
+                filename,
                 &play,
             ) {
                 Ok(_) => println!("embeded cover"),
@@ -297,7 +297,7 @@ impl Music {
             }
             if self.lyrics {
                 match lyrics::work(
-                    &filename,
+                    filename,
                     &music_file,
                     format_name,
                     &self.directory,
@@ -321,12 +321,12 @@ impl Music {
                 std::fs::remove_file(Path::new(&self.directory).join(format!("{trash_cover}.jpg")));
         }
 
-        let status = if output.status.success() { 2 } else { 3 };
-
-        status
+        if output.status.success() { 2 } else { 3 }
     }
 }
-#[allow(dead_code)]
+#[cfg(target_os = "windows")]
+use std::error::Error;
+#[cfg(target_os = "windows")]
 fn get_html(url: &str) -> Result<String, Box<dyn Error>> {
     Ok(ureq::get(playlist_fix_url(url))
         .call()?

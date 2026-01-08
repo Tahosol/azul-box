@@ -6,7 +6,7 @@ use std::error::Error;
 use std::path::Path;
 
 pub fn get(path: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
-    let mut tagged_file = Probe::open(&path)?.read()?;
+    let mut tagged_file = Probe::open(path)?.read()?;
 
     let tag = match tagged_file.primary_tag_mut() {
         Some(primary_tag) => primary_tag,
@@ -29,7 +29,7 @@ pub fn get(path: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
     let data = kugou_search(&title)?;
 
     if let Some(info) = data.data.info {
-        if let Some(best_match) = info.get(0) {
+        if let Some(best_match) = info.first() {
             let lyrics = kugou_get_lyrics(&best_match.hash, lang)?;
             if !lyrics.is_empty() {
                 tag.insert_text(ItemKey::Lyrics, lyrics);
@@ -48,7 +48,7 @@ fn kugou_get_lyrics(songhash: &str, lang: &str) -> Result<String, Box<dyn Error>
     .body_mut()
     .read_json::<KugouGetData>()?;
     if let Some(candidates) = request.candidates {
-        if let Some(first_candidate) = candidates.get(0) {
+        if let Some(first_candidate) = candidates.first() {
             let request_lyrics = ureq::get(format!("https://krcs.kugou.com/download?ver=1&man=yes&client=pc&fmt=lrc&id={}&accesskey={}", first_candidate.id, first_candidate.accesskey))
                 .call()?
                 .body_mut()

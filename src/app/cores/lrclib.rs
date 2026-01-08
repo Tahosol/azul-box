@@ -8,7 +8,7 @@ use serde::Deserialize;
 use crate::app::cores::{string_cleaner, translate::translate};
 
 pub fn lrclib_fetch(opt: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
-    let mut tagged_file = Probe::open(&opt)?.read()?;
+    let mut tagged_file = Probe::open(opt)?.read()?;
 
     let tag = match tagged_file.primary_tag_mut() {
         Some(primary_tag) => primary_tag,

@@ -138,14 +138,14 @@ fn yt_dlp_install(dir: &Path, github: &GithubRelease) -> Result<GithubRelease, B
     };
     for asset in &github.assets {
         if asset.name == file {
-            download_file(&file, dir, &asset.browser_download_url, &asset.digest)?
+            download_file(file, dir, &asset.browser_download_url, &asset.digest)?
         }
     }
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
 
-        fs::set_permissions(&dir.join("yt-dlp"), fs::Permissions::from_mode(0o755))?;
+        fs::set_permissions(dir.join("yt-dlp"), fs::Permissions::from_mode(0o755))?;
     }
     Ok(github.clone())
 }
@@ -167,10 +167,10 @@ fn ffmpeg_install(dir: &Path, github: &GithubRelease) -> Result<GithubRelease, B
     };
     for asset in &github.assets {
         if asset.name == file {
-            download_file(&file, dir, &asset.browser_download_url, &asset.digest)?
+            download_file(file, dir, &asset.browser_download_url, &asset.digest)?
         }
     }
-    let zipfile = dir.join(&file);
+    let zipfile = dir.join(file);
     unzip(&zipfile)?;
     fs::remove_file(&zipfile)?;
     fs::copy(
@@ -200,10 +200,10 @@ fn deno_install(dir: &Path, github: &GithubRelease) -> Result<GithubRelease, Box
     };
     for asset in &github.assets {
         if asset.name == file {
-            download_file(&file, dir, &asset.browser_download_url, &asset.digest)?
+            download_file(file, dir, &asset.browser_download_url, &asset.digest)?
         }
     }
-    let zipfile = dir.join(&file);
+    let zipfile = dir.join(file);
     unzip(&zipfile)?;
     fs::remove_file(zipfile)?;
     Ok(github.clone())

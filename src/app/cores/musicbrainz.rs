@@ -12,7 +12,7 @@ use ureq::Agent;
 use crate::app::cores::string_cleaner;
 
 pub fn work(opt: &Path, similarity_rate: i8) -> Result<(), Box<dyn Error>> {
-    let mut tagged_file = Probe::open(&opt)?.read()?;
+    let mut tagged_file = Probe::open(opt)?.read()?;
 
     let tag = match tagged_file.primary_tag_mut() {
         Some(primary_tag) => primary_tag,

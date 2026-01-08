@@ -358,8 +358,8 @@ impl MusicDownload {
 
                     tokio::task::spawn(async move {
                         let yt = ytdlp::Music {
-                            link: link,
-                            directory: directory,
+                            link,
+                            directory,
                             format: format,
                             lyrics: lyrics,
                             frags: frags,
