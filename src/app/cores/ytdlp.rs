@@ -33,6 +33,11 @@ pub fn video_download(
         yt.arg("--cookies").arg(cookie);
     }
 
+    let deno_path = get_path().deno;
+    if let Some(deno) = deno_path.to_str() {
+        yt.arg("--js-runtimes").arg(format!("deno:{}", deno));
+    }
+
     yt.arg("--concurrent-fragments")
         .arg(n)
         .arg("--embed-thumbnail")
@@ -167,6 +172,10 @@ impl Music {
             && self.use_cookies
         {
             yt.arg("--cookies").arg(cookie);
+        }
+        let deno_path = get_path().deno;
+        if let Some(deno) = deno_path.to_str() {
+            yt.arg("--js-runtimes").arg(format!("deno:{}", deno));
         }
 
         yt.arg("--concurrent-fragments")
