@@ -294,7 +294,7 @@ impl Music {
                 self.use_playlist_cover,
                 &music_file,
                 &self.directory,
-                filename,
+                &filename,
                 &play,
             ) {
                 Ok(_) => println!("embeded cover"),
@@ -306,7 +306,7 @@ impl Music {
             }
             if self.lyrics {
                 match lyrics::work(
-                    filename,
+                    &filename,
                     &music_file,
                     format_name,
                     &self.directory,
