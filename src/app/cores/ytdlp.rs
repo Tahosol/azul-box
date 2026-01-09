@@ -1,4 +1,4 @@
-use crate::app::cores::depen_manager::Depen;
+use crate::app::cores::depen_manager::{Depen, get_path};
 use crate::app::cores::lrclib::lrclib_fetch;
 use crate::app::cores::{kugou, musicbrainz};
 use std::path::{Path, PathBuf};
@@ -63,7 +63,7 @@ pub fn video_download(
             .arg(format!("bestvideo[height<={res}]+bestaudio"));
     } else if format == 2 {
         yt.arg("-f")
-            .arg("bestvideo[height<={res}][ext=mp4]+bestaudio");
+            .arg(format!("bv*[ext=mp4][height<={res}]+ba[ext=m4a]"));
     }
     let output = yt
         .arg(link)
