@@ -265,6 +265,7 @@ impl MusicDownload {
                             }
                         }
                     }
+                    ui.separator();
                     let kugou = ui.checkbox(&mut self.kugou_lyrics, "kugou lyrics");
                     if kugou.changed() {
                         match config::modifier_config(&self.config_path, |cfg| {
