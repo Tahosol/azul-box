@@ -64,6 +64,20 @@
   </branding>
 
   <releases>
+  <release version="v0.2.3" date="2026-1-9">
+    <url
+                type="details"
+            >https://codeberg.org/Tahoso/azul-box/releases/tag/v0.2.3</url>
+    <description>
+        <ul>
+          <li>fix deno usage</li>
+          <li>improve UI better</li>
+          <li>fix mp4 bugs in downloader</li>
+        </ul>
+    </description>
+    </release>
+
+
   <release version="v0.2.2" date="2026-1-4">
     <url
                 type="details"
