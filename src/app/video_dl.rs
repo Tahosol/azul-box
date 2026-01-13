@@ -1,5 +1,5 @@
 use crate::app::cores::depen_manager::Depen;
-use crate::app::cores::lang::LangThing;
+use crate::app::share_view::lang_widget::LangThing;
 use eframe::egui::{self, Color32};
 use native_dialog::DialogBuilder;
 use std::process::Command;
