@@ -158,8 +158,18 @@ impl VideoConvert {
                 }
             } else if self.status.load(Ordering::Relaxed) == 1 {
                 if ui.button("Cancel").clicked() {
-                    let _ = button_sound();
-                    let _ = Command::new("pkill").arg("ffmpeg").output();
+                    #[cfg(target_os = "windows")]
+                    {
+                        let _ = button_sound();
+                        let _ = Command::new("taskkill")
+                            .args(&["/IM", "ffmpeg.exe", "/F"])
+                            .output();
+                    }
+                    #[cfg(target_os = "linux")]
+                    {
+                        let _ = button_sound();
+                        let _ = Command::new("pkill").arg("ffmpeg").output();
+                    }
                 }
             }
         });
