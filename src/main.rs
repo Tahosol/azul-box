@@ -13,18 +13,22 @@ use crate::app::cores::{
     notify::fail_sound,
     ytdlp,
 };
-use eframe::egui::{self, IconData, global_theme_preference_buttons};
+use eframe::{
+    egui::{self, global_theme_preference_buttons},
+    icon_data,
+};
+static ICON: &[u8; 8736] = include_bytes!("../assets/logo.png");
+
 #[tokio::main]
 async fn main() -> eframe::Result {
-    let icon = include_bytes!("../assets/logo.png").to_vec();
-    let icon = IconData {
-        rgba: icon,
-        width: 32,
-        height: 32,
-    };
-    let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_icon(icon),
-        ..Default::default()
+    env_logger::init();
+
+    let options = match icon_data::from_png_bytes(ICON) {
+        Ok(icon) => eframe::NativeOptions {
+            viewport: egui::ViewportBuilder::default().with_icon(icon),
+            ..Default::default()
+        },
+        Err(_) => eframe::NativeOptions::default(),
     };
     eframe::run_native(
         "Azul box",
