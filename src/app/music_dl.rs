@@ -1,9 +1,11 @@
 use crate::app::cores::depen_manager::Depen;
+use crate::app::cores::url_checker::{UrlStatus, playlist_check};
 use crate::app::cores::{
     notify::{button_sound, done_sound, fail_sound},
     ytdlp,
 };
 use crate::app::share_view::lang_widget::LangThing;
+use crate::app::share_view::url_status_view;
 use eframe::egui::{self, Color32};
 use native_dialog::DialogBuilder;
 use std::path::PathBuf;
@@ -30,6 +32,7 @@ pub struct MusicDownload {
     pub crop_cover: bool,
     pub use_playlist_cover: bool,
     pub sanitize_lyrics: bool,
+    pub url_status: UrlStatus,
 }
 
 use crate::app::cores::config;
@@ -66,6 +69,7 @@ impl Default for MusicDownload {
             crop_cover: configs.music_dl.crop_cover,
             use_playlist_cover: configs.music_dl.use_playlist_cover,
             sanitize_lyrics: false,
+            url_status: UrlStatus::None,
         }
     }
 }
@@ -309,6 +313,9 @@ impl MusicDownload {
         });
         ui.separator();
         ui.vertical_centered(|ui| {
+            if self.status.load(Ordering::Relaxed) == 1 {
+                url_status_view::show(ui, &self.url_status);
+            }
             let link_label = ui.label("Link: ");
             ui.text_edit_singleline(&mut self.link)
                 .labelled_by(link_label.id);
@@ -334,6 +341,7 @@ impl MusicDownload {
 
             if self.status.load(Ordering::Relaxed) != 1 {
                 if ui.button("Download").clicked() {
+                    self.url_status = playlist_check(&self.link);
                     let _ = button_sound();
 
                     self.start_download_status();

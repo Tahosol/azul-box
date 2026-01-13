@@ -1,5 +1,7 @@
 use crate::app::cores::depen_manager::Depen;
+use crate::app::cores::url_checker::{UrlStatus, playlist_check};
 use crate::app::share_view::lang_widget::LangThing;
+use crate::app::share_view::url_status_view;
 use eframe::egui::{self, Color32};
 use native_dialog::DialogBuilder;
 use std::process::Command;
@@ -26,6 +28,7 @@ pub struct VideoDownload {
     pub cookies: Option<String>,
     pub use_cookies: bool,
     pub res: i32,
+    url_status: UrlStatus,
 }
 
 use crate::app::cores::config;
@@ -56,6 +59,7 @@ impl Default for VideoDownload {
             cookies: configs.universal.cookies,
             use_cookies: configs.universal.use_cookies,
             res: configs.video_dl.resolution,
+            url_status: UrlStatus::None,
         }
     }
 }
@@ -250,6 +254,9 @@ impl VideoDownload {
         });
         ui.separator();
         ui.vertical_centered(|ui| {
+            if self.status.load(Ordering::Relaxed) == 1 {
+                url_status_view::show(ui, &self.url_status);
+            }
             let link_label = ui.label("Link: ");
             ui.text_edit_singleline(&mut self.link)
                 .labelled_by(link_label.id);
@@ -275,6 +282,7 @@ impl VideoDownload {
 
             if self.status.load(Ordering::Relaxed) != 1 {
                 if ui.button("Download").clicked() {
+                    self.url_status = playlist_check(&self.link);
                     let _ = button_sound();
                     self.start_download_status();
 

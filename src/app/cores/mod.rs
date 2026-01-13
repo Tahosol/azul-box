@@ -9,4 +9,5 @@ pub mod musicbrainz;
 pub mod notify;
 pub mod string_cleaner;
 pub mod translate;
+pub mod url_checker;
 pub mod ytdlp;
