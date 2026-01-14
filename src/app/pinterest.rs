@@ -131,7 +131,7 @@ fn download(
             .current_dir(&directory)
             .output()?;
 
-        let log = String::from_utf8(output.stdout).unwrap_or_else(|_| "Life suck".to_string());
+        let log = String::from_utf8_lossy(&output.stdout);
         log::info!("{log}");
     } else if !videoorimg {
         let _ = pin_pic_dl(&link, &directory);
