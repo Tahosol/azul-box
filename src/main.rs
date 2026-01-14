@@ -1,12 +1,15 @@
 mod app;
 pub const USERAGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36";
 pub const OS: &str = std::env::consts::OS;
+use std::process::Command;
 
 use std::{
     fs,
+    path::PathBuf,
     sync::{Arc, atomic::AtomicBool},
 };
 
+use eframe::egui::Color32;
 use ftail::Ftail;
 use log::LevelFilter;
 
@@ -58,6 +61,7 @@ struct MainApp {
     pin: bool,
     app_data: Depen,
     is_install_depen: Arc<AtomicBool>,
+    log_path: PathBuf,
 }
 
 impl Default for MainApp {
@@ -67,6 +71,7 @@ impl Default for MainApp {
             Some(version) => version,
             None => "Missing".to_string(),
         };
+        let log_path = get_log_path();
         Self {
             music_download: app::music_dl::MusicDownload::default(),
             video_download: app::video_dl::VideoDownload::default(),
@@ -80,6 +85,7 @@ impl Default for MainApp {
             pin: false,
             app_data,
             is_install_depen: Arc::new(AtomicBool::new(false)),
+            log_path,
         }
     }
 }
@@ -153,6 +159,42 @@ impl eframe::App for MainApp {
                                 egui::RichText::new(format!("yt-dlp: {}", self.yt_version))
                                     .size(20.0),
                             ));
+                            if ui
+                                .button(
+                                    egui::RichText::new("Logs")
+                                        .size(20.0)
+                                        .color(Color32::DARK_GRAY),
+                                )
+                                .clicked()
+                            {
+                                let log = self.log_path.clone();
+                                #[cfg(target_os = "windows")]
+                                {
+                                    tokio::task::spawn(async move {
+                                        match Command::new("xdg-open").arg(log).spawn() {
+                                            Ok(_) => {
+                                                log::info!("open logs in file manager")
+                                            }
+                                            Err(e) => {
+                                                log::error!("fail to open file manager for log {e}")
+                                            }
+                                        }
+                                    });
+                                }
+                                #[cfg(target_os = "linux")]
+                                {
+                                    tokio::task::spawn(async move {
+                                        match Command::new("xdg-open").arg(log).spawn() {
+                                            Ok(_) => {
+                                                log::info!("open logs in file manager")
+                                            }
+                                            Err(e) => {
+                                                log::error!("fail to open file manager for log {e}")
+                                            }
+                                        }
+                                    });
+                                }
+                            }
                         });
 
                         if ui.button("Update").clicked() {
