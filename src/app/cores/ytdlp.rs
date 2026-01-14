@@ -76,13 +76,16 @@ pub fn video_download(
         .expect("Failed to execute yt-dlp in Music");
 
     let log = String::from_utf8_lossy(&output.stdout);
-    println!("{log}");
+    log::info!("{log}");
 
     let status: i8 = if output.status.success() { 2 } else { 3 };
 
+    if status == 3 {
+        log::error!("{}", String::from_utf8_lossy(&output.stderr));
+    }
+
     status
 }
-
 use crate::app::cores::cover;
 use crate::app::cores::lyrics;
 
@@ -164,7 +167,7 @@ impl Music {
             _ => return 3,
         };
         let n = self.frags.to_string();
-        println!("{n}");
+        log::info!("{}", n);
 
         let mut yt = Command::new(self.yt_dlp);
 
@@ -213,7 +216,7 @@ impl Music {
         let output = yt.output().expect("Failed to execute yt-dlp in Music");
 
         let log = String::from_utf8(output.stdout).unwrap_or_default();
-        println!("{log}");
+        log::info!("{}", log);
 
         let play: Option<String>;
         let files: Vec<String>;
@@ -222,12 +225,12 @@ impl Music {
             if self.link.contains("list=") {
                 match get_html(&self.link) {
                     Ok(html) => {
-                        println!("case 1 worked");
+                        log::info!("case 1 worked");
                         play = Some(get_name_from_title(&html));
                         files = get_all_songs_name_from_regex_playlist(&html);
                     }
                     Err(e) => {
-                        println!("Error case 1 : {e}");
+                        log::error!("Error case 1: {e}");
                         play = None;
                         files = vec![];
                     }
@@ -235,12 +238,12 @@ impl Music {
             } else {
                 match get_html(&self.link) {
                     Ok(html) => {
-                        println!("case 2 worked");
+                        log::info!("case 2 worked");
                         play = None;
                         files = vec![get_name_from_title(&html)];
                     }
                     Err(e) => {
-                        println!("Error case 2: {e}");
+                        log::error!("Error case 2: {e}");
                         play = None;
                         files = vec![];
                     }
@@ -268,7 +271,7 @@ impl Music {
 
         for i in files.into_iter() {
             let extension = format!(".{}", format_name);
-            println!("i: {i}");
+            log::info!("i: {i}");
 
             #[cfg(target_os = "linux")]
             let item = i.split("Adding metadata to \"").last().unwrap();
@@ -277,17 +280,17 @@ impl Music {
             #[cfg(target_os = "linux")]
             let filename = item.split(&extension).next().unwrap();
             #[cfg(target_os = "linux")]
-            println!("item: {item}");
+            log::info!("item: {item}");
 
             #[cfg(target_os = "windows")]
             let filename = i;
 
-            println!("filename: {filename}");
+            log::info!("filename: {filename}");
 
             let music_file = Path::new(&self.directory).join(format!("{}{}", filename, extension));
-            println!("music dir: {music_file:?}");
+            log::info!("music dir: {music_file:?}");
 
-            println!("Playlist name: {play:?}");
+            log::info!("Playlist name: {play:?}");
 
             match cover::embed(
                 self.crop_cover,
@@ -297,8 +300,8 @@ impl Music {
                 &filename,
                 &play,
             ) {
-                Ok(_) => println!("embeded cover"),
-                Err(e) => println!("embed cover fail: {e}"),
+                Ok(_) => log::info!("embedded cover"),
+                Err(e) => log::error!("embed cover fail: {e}"),
             }
 
             if self.musicbrainz {
@@ -312,8 +315,8 @@ impl Music {
                     &self.directory,
                     self.sanitize_lyrics,
                 ) {
-                    Ok(_) => println!("Lyrics from youtube embeded"),
-                    Err(e) => println!("Fail to use lyrics from youtube: {e}"),
+                    Ok(_) => log::info!("Lyrics from youtube embedded"),
+                    Err(e) => log::error!("Fail to use lyrics from youtube: {e}"),
                 }
             }
             if self.lrclib {
@@ -330,7 +333,12 @@ impl Music {
                 std::fs::remove_file(Path::new(&self.directory).join(format!("{trash_cover}.jpg")));
         }
 
-        if output.status.success() { 2 } else { 3 }
+        if output.status.success() {
+            2
+        } else {
+            log::error!("{}", String::from_utf8_lossy(&output.stderr));
+            3
+        }
     }
 }
 #[cfg(target_os = "windows")]

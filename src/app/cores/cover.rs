@@ -1,4 +1,5 @@
 use crate::app::cores::files::file_finder;
+
 use image::error::ImageError;
 use image::{GenericImageView, ImageReader};
 use std::path::Path;
@@ -9,13 +10,13 @@ fn square_crop_to_png(path: &Path) -> Result<(), ImageError> {
     let png_path = path.with_extension("png");
 
     let final_img = if width != height {
-        println!("crop report: start crop");
+        log::info!("crop report: start crop");
         let side = width.min(height);
         let x = (width - side) / 2;
         let y = (height - side) / 2;
         img.crop_imm(x, y, side, side)
     } else {
-        println!("crop report: skipp crop");
+        log::info!("crop report: skipp crop");
         img
     };
 
@@ -59,13 +60,13 @@ pub fn embed(
         match file_finder(directory, name, &["jpg", "jpeg", "png"]) {
             Some(raw_image) => {
                 let png = raw_image.with_extension("png");
-                println!("Cover report raw_image: {raw_image:?}");
+                log::info!("Cover report raw_image: {raw_image:?}");
                 if crop {
                     square_crop_to_png(&raw_image)?
                 } else {
                     to_png(&raw_image)?;
                 }
-                println!("Cover report png: {png:?}");
+                log::info!("Cover report png: {png:?}");
                 embed_img_internal(&png, musicfile)?;
                 std::fs::remove_file(single_cover)?;
             }
@@ -105,7 +106,7 @@ fn embed_img_internal(cover: &Path, musicfile: &Path) -> Result<(), lofty::error
             } else {
                 let tag_type = tagged_file.primary_tag_type();
 
-                eprintln!("WARN: No tags found, creating a new tag of type `{tag_type:?}`");
+                log::error!("No tags found, creating a new tag of type `{tag_type:?}`");
                 tagged_file.insert_tag(Tag::new(tag_type));
 
                 tagged_file.primary_tag_mut().unwrap()
@@ -118,9 +119,9 @@ fn embed_img_internal(cover: &Path, musicfile: &Path) -> Result<(), lofty::error
     tag.push_picture(picture);
 
     if tag.save_to_path(musicfile, WriteOptions::default()).is_ok() {
-        println!("Cover report: Embedded Sucsess");
+        log::info!("Cover report: Embedded Success");
     } else {
-        eprintln!("Cover report: Embedded Fail")
+        log::error!("Cover report: Embedded Fail");
     }
     Ok(())
 }

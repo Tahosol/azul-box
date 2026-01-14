@@ -3,7 +3,7 @@ pub mod cover;
 pub mod depen_manager;
 pub mod files;
 pub mod kugou;
-pub mod log_location;
+
 pub mod lrclib;
 pub mod lyrics;
 pub mod musicbrainz;

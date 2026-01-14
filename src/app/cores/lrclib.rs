@@ -18,7 +18,7 @@ pub fn lrclib_fetch(opt: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
             } else {
                 let tag_type = tagged_file.primary_tag_type();
 
-                eprintln!("WARN: No tags found, creating a new tag of type `{tag_type:?}`");
+                log::warn!("No tags found, creating a new tag of type `{tag_type:?}`");
                 tagged_file.insert_tag(Tag::new(tag_type));
 
                 tagged_file.primary_tag_mut().unwrap()
@@ -35,9 +35,9 @@ pub fn lrclib_fetch(opt: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
         artist, title
     );
     let ly = fetch(&query)?;
-    println!("Query for lrclib: {}", query);
+    log::info!("Query for lrclib: {}", query);
     if !ly.is_empty() {
-        println!("Lyrics Found From lrclib");
+        log::info!("Lyrics Found From lrclib");
         let lyric_final = translate(lang, &ly)?;
         if !lyric_final.is_empty() {
             tag.insert_text(ItemKey::Lyrics, lyric_final);

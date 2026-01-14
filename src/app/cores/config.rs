@@ -17,10 +17,10 @@ pub fn config_file_default() {
         let contents: Config = Config::default();
         match save_config(&contents, &azul_conf_file_with_dir) {
             Ok(_) => {
-                println!("Saved default config")
+                log::info!("Saved default config")
             }
             Err(e) => {
-                eprintln!("Fail to save default config {e}")
+                log::error!("Fail to save default config: {e}")
             }
         }
     }

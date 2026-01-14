@@ -42,7 +42,7 @@ impl Default for VideoDownload {
         let configs = match config::load_config(&path) {
             Ok(config) => config,
             Err(e) => {
-                println!("music_dl: Fail to read config {e}");
+                log::error!("Failed to read config: {e}");
                 config::Config::default()
             }
         };
@@ -85,10 +85,10 @@ impl VideoDownload {
                     cfg.video_dl.format = self.format
                 }) {
                     Ok(_) => {
-                        println!("video_dl: Changed format")
+                        log::info!("Format successfully changed");
                     }
                     Err(e) => {
-                        println!("video_dl: Fail change format {e}")
+                        log::error!("Fail change format {e}");
                     }
                 }
             };
@@ -111,10 +111,10 @@ impl VideoDownload {
                     cfg.video_dl.resolution = self.res
                 }) {
                     Ok(_) => {
-                        println!("video_dl: Changed Resolution")
+                        log::info!("Resolution successfully changed");
                     }
                     Err(e) => {
-                        println!("video_dl: Fail change Resolution {e}")
+                        log::error!("Fail change Resolution {e}");
                     }
                 }
             };
@@ -133,10 +133,10 @@ impl VideoDownload {
                     cfg.video_dl.auto_gen_sub = self.auto_sub
                 }) {
                     Ok(_) => {
-                        println!("video_dl: Changed auto_sub")
+                        log::info!("Auto subtitle generation successfully changed");
                     }
                     Err(e) => {
-                        println!("video_dl: Fail change auto_sub {e}")
+                        log::error!("Fail change auto_sub {e}");
                     }
                 }
             }
@@ -147,10 +147,10 @@ impl VideoDownload {
                     cfg.video_dl.auto_gen_sub = self.auto_sub
                 }) {
                     Ok(_) => {
-                        println!("video_dl: Changed auto_sub")
+                        log::info!("Changed auto_sub");
                     }
                     Err(e) => {
-                        println!("video_dl: Fail change auto_sub {e}")
+                        log::error!("Fail change auto_sub {e}");
                     }
                 }
             }
@@ -165,10 +165,10 @@ impl VideoDownload {
                         cfg.universal.use_cookies = self.use_cookies
                     }) {
                         Ok(_) => {
-                            println!("video_dl: Changed use_cookies")
+                            log::info!("Cookie usage successfully changed");
                         }
                         Err(e) => {
-                            println!("video_dl: Fail change use_cookies {e}")
+                            log::error!("Fail change use_cookies {e}");
                         }
                     }
                 }
@@ -196,10 +196,10 @@ impl VideoDownload {
                                     cfg.video_dl.subtitle = self.subtitle
                                 }) {
                                     Ok(_) => {
-                                        println!("video_dl: Changed subtitle")
+                                        log::info!("Subtitle settings successfully changed");
                                     }
                                     Err(e) => {
-                                        println!("video_dl: Fail change subtitle {e}")
+                                        log::error!("Fail change subtitle {e}");
                                     }
                                 }
                             }
@@ -216,10 +216,10 @@ impl VideoDownload {
                                     cfg.video_dl.subtitle = self.subtitle
                                 }) {
                                     Ok(_) => {
-                                        println!("video_dl: Changed subtitle")
+                                        log::info!("Changed subtitle");
                                     }
                                     Err(e) => {
-                                        println!("video_dl: Fail change subtitle {e}")
+                                        log::error!("Fail change subtitle {e}");
                                     }
                                 }
                             }
@@ -234,10 +234,10 @@ impl VideoDownload {
                         cfg.video_dl.fragments = self.frag
                     }) {
                         Ok(_) => {
-                            println!("video_dl: Changed fragments")
+                            log::info!("Fragment settings successfully changed");
                         }
                         Err(e) => {
-                            println!("video_dl: Fail change fragments {e}")
+                            log::error!("Fail change fragment {e}");
                         }
                     }
                 }
@@ -276,7 +276,7 @@ impl VideoDownload {
                 if let Some(p) = path {
                     self.out_directory = p.to_string_lossy().into_owned();
                 } else {
-                    println!("No file selected.");
+                    log::info!("No file was selected.");
                 }
             };
 

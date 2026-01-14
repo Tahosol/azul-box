@@ -8,6 +8,7 @@ use std::thread;
 use std::{error::Error, path::Path};
 
 use crate::USERAGENT;
+
 use crate::app::cores::notify::done_sound;
 
 pub struct Depen {
@@ -114,7 +115,7 @@ fn download_file(
         )?;
         if digest != "linux" && sum.split(" ").nth(0) != digest.split(":").last() {
             fs::remove_file(dir.join(filename))?;
-            println!("{filename} fail: {digest:?} is not same as {sum}");
+            log::error!("{filename} fail: {digest:?} is not same as {sum}");
             return Err(format!("Sha256 fail for {filename}").into());
         }
     }
@@ -214,37 +215,40 @@ pub fn install(dir: &Path) -> Result<(), Box<dyn Error>> {
 
     let yt_github =
         get_github_release("https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest")?;
-    println!("dependi_install: yt_github {yt_github}");
+    log::info!("yt_github {yt_github}");
 
     let ffmpeg_github =
         get_github_release("https://api.github.com/repos/yt-dlp/FFmpeg-Builds/releases/latest")?;
-    println!("dependi_install: ffmpeg_github {ffmpeg_github}");
+    log::info!("ffmpeg_github {ffmpeg_github}");
 
     let deno_github =
         get_github_release("https://api.github.com/repos/denoland/deno/releases/latest")?;
-    println!("dependi_install: deno_github {deno_github}");
+    log::info!("deno_github {deno_github}");
 
     match fs::read_to_string(&saved_data_location) {
         Ok(data) => {
             let mut data_struct: VersionJson = serde_json::from_str(&data)?;
             if data_struct.deno != deno_github.name {
-                println!(
-                    "Update avaiable for Deno from {} to {}",
-                    data_struct.deno, deno_github.name
+                log::info!(
+                    "Update available for Deno from {} to {}",
+                    data_struct.deno,
+                    deno_github.name
                 );
                 data_struct.deno = deno_install(dir, &deno_github)?.name;
             }
             if data_struct.ffmpeg != ffmpeg_github.name {
-                println!(
-                    "Update avaiable for ffmpeg from {} to {}",
-                    data_struct.ffmpeg, ffmpeg_github.name
+                log::info!(
+                    "Update available for ffmpeg from {} to {}",
+                    data_struct.ffmpeg,
+                    ffmpeg_github.name
                 );
                 data_struct.ffmpeg = ffmpeg_install(dir, &ffmpeg_github)?.name;
             }
             if data_struct.yt_dlp != yt_github.name {
-                println!(
-                    "Update avaiable for yt_dlp from {} to {}",
-                    data_struct.yt_dlp, yt_github.name
+                log::info!(
+                    "Update available for yt_dlp from {} to {}",
+                    data_struct.yt_dlp,
+                    yt_github.name
                 );
                 data_struct.yt_dlp = yt_dlp_install(dir, &yt_github)?.name;
             }

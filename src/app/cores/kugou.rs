@@ -16,7 +16,7 @@ pub fn get(path: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
             } else {
                 let tag_type = tagged_file.primary_tag_type();
 
-                eprintln!("WARN: No tags found, creating a new tag of type `{tag_type:?}`");
+                log::info!("No tags found, creating a new tag of type `{tag_type:?}`");
                 tagged_file.insert_tag(Tag::new(tag_type));
 
                 tagged_file.primary_tag_mut().unwrap()
@@ -59,6 +59,7 @@ fn kugou_get_lyrics(songhash: &str, lang: &str) -> Result<String, Box<dyn Error>
             return Ok(translated_lyrics);
         }
     }
+    log::error!("Nothing exist");
     Err("Nothing exist".into())
 }
 

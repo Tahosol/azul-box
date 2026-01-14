@@ -1,4 +1,5 @@
 use crate::app::cores::depen_manager::Depen;
+
 use crate::app::cores::url_checker::{UrlStatus, playlist_check};
 use crate::app::cores::{
     notify::{button_sound, done_sound, fail_sound},
@@ -46,7 +47,7 @@ impl Default for MusicDownload {
         let configs = match config::load_config(&path) {
             Ok(config) => config,
             Err(e) => {
-                println!("music_dl: Fail to read config {e}");
+                log::error!("Fail to read config {e}");
                 config::Config::default()
             }
         };
@@ -88,10 +89,10 @@ impl MusicDownload {
                         cfg.music_dl.musicbrainz = self.musicbrainz
                     }) {
                         Ok(_) => {
-                            println!("music_dl: musicbrainz changed")
+                            log::info!("musicbrainz changed");
                         }
                         Err(e) => {
-                            println!("music_dl: Fail musicbrainz {e}")
+                            log::error!("Fail musicbrainz {e}");
                         }
                     }
                 }
@@ -104,10 +105,10 @@ impl MusicDownload {
                     cfg.music_dl.threshold = self.sim_rate
                 }) {
                     Ok(_) => {
-                        println!("music_dl: Changed threshold")
+                        log::info!("Changed threshold");
                     }
                     Err(e) => {
-                        println!("music_dl: Fail change threshold {e}")
+                        log::error!("Fail change threshold {e}");
                     }
                 }
             }
@@ -130,10 +131,10 @@ impl MusicDownload {
                     cfg.music_dl.format = self.format
                 }) {
                     Ok(_) => {
-                        println!("music_dl: Changed format")
+                        log::info!("Changed format");
                     }
                     Err(e) => {
-                        println!("music_dl: Fail change format {e}")
+                        log::error!("Fail change format {e}");
                     }
                 }
             };
@@ -152,10 +153,10 @@ impl MusicDownload {
                     cfg.music_dl.auto_gen_sub = self.auto_lyric
                 }) {
                     Ok(_) => {
-                        println!("music_dl: Changed auto lyric")
+                        log::info!("Changed auto lyric");
                     }
                     Err(e) => {
-                        println!("music_dl: Fail change auto lyric {e}")
+                        log::error!("Fail change auto lyric {e}");
                     }
                 }
             }
@@ -166,10 +167,10 @@ impl MusicDownload {
                     cfg.music_dl.auto_gen_sub = self.auto_lyric
                 }) {
                     Ok(_) => {
-                        println!("music_dl: Changed auto lyric")
+                        log::info!("Changed auto lyric");
                     }
                     Err(e) => {
-                        println!("music_dl: Fail change auto lyric {e}")
+                        log::error!("Fail change auto lyric {e}");
                     }
                 }
             }
@@ -188,10 +189,10 @@ impl MusicDownload {
                         cfg.universal.use_cookies = self.use_cookies
                     }) {
                         Ok(_) => {
-                            println!("music_dl: Changed use_cookies")
+                            log::info!("Changed use_cookies");
                         }
                         Err(e) => {
-                            println!("music_dl: Fail change use_cookies {e}")
+                            log::error!("Fail change use_cookies {e}");
                         }
                     }
                 }
@@ -202,10 +203,10 @@ impl MusicDownload {
                             cfg.music_dl.use_playlist_cover = self.use_playlist_cover
                         }) {
                             Ok(_) => {
-                                println!("music_dl: Changed use_playlist_cover")
+                                log::info!("Changed use_playlist_cover");
                             }
                             Err(e) => {
-                                println!("music_dl: Fail change use_playlist_cover {e}")
+                                log::error!("Fail change use_playlist_cover {e}");
                             }
                         }
                     }
@@ -215,10 +216,10 @@ impl MusicDownload {
                             cfg.music_dl.crop_cover = self.crop_cover
                         }) {
                             Ok(_) => {
-                                println!("music_dl: Changed crop_cover")
+                                log::info!("Changed crop_cover");
                             }
                             Err(e) => {
-                                println!("music_dl: Fail change crop_cover {e}")
+                                log::error!("Fail change Crop cover {e}");
                             }
                         }
                     }
@@ -242,10 +243,10 @@ impl MusicDownload {
                             cfg.music_dl.lyrics = self.lyrics
                         }) {
                             Ok(_) => {
-                                println!("music_dl: Changed yt lyrics")
+                                log::info!("Changed yt lyrics");
                             }
                             Err(e) => {
-                                println!("music_dl: Fail change yt lyrics {e}")
+                                log::error!("Fail change yt lyrics {e}");
                             }
                         }
                     }
@@ -262,10 +263,10 @@ impl MusicDownload {
                             cfg.music_dl.liblrc = self.lrclib
                         }) {
                             Ok(_) => {
-                                println!("music_dl: Changed lrclib")
+                                log::info!("Changed Liblrc");
                             }
                             Err(e) => {
-                                println!("music_dl: Fail change lrclib {e}")
+                                log::error!("Fail change Liblrc {e}");
                             }
                         }
                     }
@@ -276,10 +277,10 @@ impl MusicDownload {
                             cfg.music_dl.kugou_lyrics = self.kugou_lyrics
                         }) {
                             Ok(_) => {
-                                println!("music_dl: Changed kugou_lyrics")
+                                log::info!("Changed kugou");
                             }
                             Err(e) => {
-                                println!("music_dl: Fail change kugou_lyrics {e}")
+                                log::error!("Fail change kugou {e}");
                             }
                         }
                     }
@@ -293,10 +294,10 @@ impl MusicDownload {
                         cfg.music_dl.fragments = self.frag
                     }) {
                         Ok(_) => {
-                            println!("music_dl: Changed fragments")
+                            log::info!("Changed frag");
                         }
                         Err(e) => {
-                            println!("music_dl: Fail change fragments {e}")
+                            log::error!("Fail frag {e}");
                         }
                     }
                 }
@@ -335,7 +336,7 @@ impl MusicDownload {
                 if let Some(p) = path {
                     self.out_directory = p.to_string_lossy().into_owned();
                 } else {
-                    println!("No file selected.");
+                    log::info!("No file selected.");
                 }
             };
 

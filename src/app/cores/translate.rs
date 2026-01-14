@@ -1,3 +1,4 @@
+use log::info;
 use serde_json::Value;
 use url::form_urlencoded;
 
@@ -13,7 +14,7 @@ pub fn translate(to: &str, text: &str) -> Result<String, Box<dyn std::error::Err
     let json_as_string = ureq::get(&url).call()?.body_mut().read_to_string()?;
     let values = serde_json::from_str::<Value>(&json_as_string)?;
     if let Some(value) = values.get(0) {
-        println!("{:?}", value.as_str());
+        info!("{:?}", value.as_str());
         if let Some(list) = value.as_array() {
             let lyrics: Vec<String> = list
                 .iter()
@@ -21,7 +22,7 @@ pub fn translate(to: &str, text: &str) -> Result<String, Box<dyn std::error::Err
                 .map(|s| s.to_string())
                 .collect();
             translated_text = lyrics.join("");
-            println!("Translate success!");
+            info!("Translate success!");
         }
     }
     Ok(translated_text)

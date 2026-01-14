@@ -1,12 +1,12 @@
+use crate::app::cores::depen_manager::Depen;
+
+use crate::app::cores::notify::{button_sound, done_sound, fail_sound};
 use eframe::egui::{self, Color32};
 use native_dialog::DialogBuilder;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicI8, Ordering};
-
-use crate::app::cores::depen_manager::Depen;
-use crate::app::cores::notify::{button_sound, done_sound, fail_sound};
 
 pub struct VideoConvert {
     pub out_directory: String,
@@ -113,7 +113,7 @@ impl VideoConvert {
                     let input = self.input_file.split(".").last().unwrap();
                     self.format_in = input.to_string();
                 } else {
-                    println!("No file selected.");
+                    log::info!("No file selected.");
                 }
             }
 
@@ -132,7 +132,7 @@ impl VideoConvert {
                 if let Some(p) = path {
                     self.out_directory = p.to_string_lossy().into_owned();
                 } else {
-                    println!("No file selected.");
+                    log::info!("No file selected.");
                 }
             };
             if self.status.load(Ordering::Relaxed) != 1 {
@@ -205,7 +205,7 @@ fn download(input: String, directory: String, format_out: String, ffmpeg: Option
 
     let status = output.status;
 
-    println!("{status}");
+    log::info!("{status}");
     let status: i8 = if status.success() { 2 } else { 3 };
     status
 }

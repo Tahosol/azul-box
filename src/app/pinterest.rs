@@ -13,6 +13,7 @@ use ureq::get;
 
 use crate::USERAGENT;
 use crate::app::cores::depen_manager::Depen;
+
 use crate::app::cores::notify::{button_sound, done_sound, fail_sound};
 
 pub struct PinterstDownload {
@@ -80,7 +81,7 @@ impl PinterstDownload {
                 if let Some(p) = path {
                     self.out_directory = p.to_string_lossy().into_owned();
                 } else {
-                    println!("No file selected.");
+                    log::info!("No file selected.");
                 }
             };
 
@@ -105,7 +106,7 @@ impl PinterstDownload {
                                 let _ = done_sound();
                             }
                             Err(e) => {
-                                println!("Fail pinterest dl: {e}");
+                                log::error!("Fail pinterest dl: {e}");
                                 complete.store(false, Ordering::Relaxed);
                                 doing.store(false, Ordering::Relaxed);
                                 let _ = fail_sound();
@@ -131,7 +132,7 @@ fn download(
             .output()?;
 
         let log = String::from_utf8(output.stdout).unwrap_or_else(|_| "Life suck".to_string());
-        println!("{log}");
+        log::info!("{log}");
     } else if !videoorimg {
         let _ = pin_pic_dl(&link, &directory);
     }
@@ -149,7 +150,7 @@ fn pin_pic_dl(link: &String, directory: &String) -> Result<(), Box<dyn Error>> {
 
     if let Some(first_image) = doc.select(&selector).next() {
         if let Some(src) = first_image.value().attr("src") {
-            println!("First image URL: {}", src);
+            log::info!("First image URL: {}", src);
             let filename = src.split("/").last().unwrap();
 
             let response = get(src).call()?;
@@ -159,12 +160,12 @@ fn pin_pic_dl(link: &String, directory: &String) -> Result<(), Box<dyn Error>> {
             let mut file = File::create(Path::new(directory).join(filename))?;
             copy(&mut body.into_reader(), &mut file)?;
 
-            println!("Image downloaded successfully: {}", filename);
+            log::info!("Image downloaded successfully: {}", filename);
         } else {
-            println!("The first image does not have a 'src' attribute.");
+            log::info!("The first image does not have a 'src' attribute.");
         }
     } else {
-        println!("No images found in the document.");
+        log::error!("No images found in the document.");
     }
     Ok(())
 }

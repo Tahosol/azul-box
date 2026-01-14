@@ -1,4 +1,6 @@
 use crate::app::cores::files::file_finder;
+
+use log::{error, info};
 use std::error::Error;
 use std::fs;
 use std::path::Path;
@@ -15,6 +17,7 @@ pub fn work(
     let lyrics_file = match file_finder(directory, filename, &["lrc"]) {
         Some(path) => path,
         None => {
+            error!("Lyrics file not found.");
             return Err("Lyrics file not found.".into());
         }
     };
@@ -48,7 +51,9 @@ pub fn work(
         tag.insert_text(ItemKey::Lyrics, lyrics);
         tag.save_to_path(music_file, WriteOptions::default())?;
 
+        info!("Lyrics successfully saved to the music file.");
         fs::remove_file(&lyrics_file)?;
+        info!("Lyrics file removed after processing.");
     }
     Ok(())
 }
@@ -169,7 +174,6 @@ impl LrcLine {
             minustime.minutes == 0 && -0.5 <= minustime.seconds && minustime.seconds <= 0.0;
         let time_status_less_strict =
             minustime.minutes == 0 && -2.0 < minustime.seconds && minustime.seconds <= 0.0;
-        // println!("{minustime}: {time_status}");
 
         if (content_check && time_status) || (strict_similar_content && time_status_less_strict) {
             Ok(Similarity::Content)

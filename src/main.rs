@@ -13,7 +13,6 @@ use log::LevelFilter;
 use crate::app::cores::{
     config::{config_file_default, get_log_path},
     depen_manager::{Depen, get_path, install},
-    log_location,
     notify::fail_sound,
     ytdlp,
 };
@@ -106,10 +105,10 @@ impl eframe::App for MainApp {
                     match install(&dir) {
                         Ok(_) => {
                             progress.store(false, std::sync::atomic::Ordering::Relaxed);
-                            log::info!("{} Updated dependencies", log_location::get());
+                            log::info!("Updated dependencies");
                         }
                         Err(e) => {
-                            log::error!("{} dependencies install error {e}", log_location::get());
+                            log::error!("dependencies install error {e}");
                             let _ = fail_sound();
                         }
                     }
@@ -172,16 +171,10 @@ impl eframe::App for MainApp {
                                         Ok(_) => {
                                             progress
                                                 .store(false, std::sync::atomic::Ordering::Relaxed);
-                                            log::info!(
-                                                "{} Updated dependencies",
-                                                log_location::get()
-                                            );
+                                            log::info!("Updated dependencies");
                                         }
                                         Err(e) => {
-                                            log::error!(
-                                                "{} dependencies install error {e}",
-                                                log_location::get()
-                                            );
+                                            log::error!("dependencies install error {e}");
                                             let _ = fail_sound();
                                         }
                                     }
