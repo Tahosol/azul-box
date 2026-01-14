@@ -7,9 +7,13 @@ use std::{
     sync::{Arc, atomic::AtomicBool},
 };
 
+use ftail::Ftail;
+use log::LevelFilter;
+
 use crate::app::cores::{
-    config::config_file_default,
+    config::{config_file_default, get_log_path},
     depen_manager::{Depen, get_path, install},
+    log_location,
     notify::fail_sound,
     ytdlp,
 };
@@ -21,7 +25,12 @@ static ICON: &[u8; 8736] = include_bytes!("../assets/logo.png");
 
 #[tokio::main]
 async fn main() -> eframe::Result {
-    env_logger::init();
+    let log = get_log_path();
+    let _ = Ftail::new()
+        .daily_file(&log, LevelFilter::Info)
+        .daily_file(&log, LevelFilter::Warn)
+        .daily_file(&log, LevelFilter::Error)
+        .init();
 
     let options = match icon_data::from_png_bytes(ICON) {
         Ok(icon) => eframe::NativeOptions {
@@ -97,10 +106,10 @@ impl eframe::App for MainApp {
                     match install(&dir) {
                         Ok(_) => {
                             progress.store(false, std::sync::atomic::Ordering::Relaxed);
-                            println!("Updated dependencies");
+                            log::info!("{} Updated dependencies", log_location::get());
                         }
                         Err(e) => {
-                            println!("dependencies install error {e}");
+                            log::error!("{} dependencies install error {e}", log_location::get());
                             let _ = fail_sound();
                         }
                     }
@@ -163,10 +172,16 @@ impl eframe::App for MainApp {
                                         Ok(_) => {
                                             progress
                                                 .store(false, std::sync::atomic::Ordering::Relaxed);
-                                            println!("Updated dependencies");
+                                            log::info!(
+                                                "{} Updated dependencies",
+                                                log_location::get()
+                                            );
                                         }
                                         Err(e) => {
-                                            println!("dependencies install error {e}");
+                                            log::error!(
+                                                "{} dependencies install error {e}",
+                                                log_location::get()
+                                            );
                                             let _ = fail_sound();
                                         }
                                     }

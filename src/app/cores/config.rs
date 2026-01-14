@@ -128,3 +128,11 @@ impl Default for Config {
         }
     }
 }
+
+pub fn get_log_path() -> PathBuf {
+    let data = dirs::data_local_dir().unwrap().join("azulbox").join("logs");
+    if !data.exists() {
+        let _ = fs::create_dir_all(&data);
+    }
+    data
+}
