@@ -190,15 +190,15 @@ impl LangThing {
                             if ui.button(*lang).clicked() {
                                 lang_in = code.to_string();
                                 let path_config = get_config_file_path();
-                                println!("{path_config:?}");
+                                log::info!("{path_config:?}");
                                 match config::modifier_config(&path_config, |cfg| {
                                     cfg.universal.language = lang_in.clone()
                                 }) {
                                     Ok(_) => {
-                                        println!("Saved languages")
+                                        log::info!("Saved languages")
                                     }
                                     Err(e) => {
-                                        eprintln!("Fail saved languages {e}")
+                                        log::error!("Fail saved languages {e}")
                                     }
                                 }
                             }
