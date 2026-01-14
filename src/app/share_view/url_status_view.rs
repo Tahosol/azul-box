@@ -14,7 +14,7 @@ pub fn show(ui: &mut Ui, status: &UrlStatus) {
             ui_part(ui, "single");
         }
         UrlStatus::None => {
-            ui_part(ui, "");
+            ui_part(ui, "none");
         }
     }
 }

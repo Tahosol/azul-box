@@ -10,7 +10,9 @@ pub fn playlist_check(url: &str) -> UrlStatus {
         UrlStatus::Radio
     } else if url.contains("list") {
         UrlStatus::Playlist
-    } else {
+    } else if url.contains("http") {
         UrlStatus::Single
+    } else {
+        UrlStatus::None
     }
 }
