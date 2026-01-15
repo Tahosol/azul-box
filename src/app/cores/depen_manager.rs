@@ -56,7 +56,6 @@ struct Asset {
 fn unzip(file_in: &Path) -> Result<(), Box<dyn Error>> {
     let file = fs::File::open(file_in)?;
     let dir_out = file_in.ancestors().nth(1).unwrap();
-    dbg!(&dir_out);
 
     let mut archive = zip::ZipArchive::new(file)?;
 
@@ -66,7 +65,6 @@ fn unzip(file_in: &Path) -> Result<(), Box<dyn Error>> {
             Some(path) => dir_out.join(path),
             None => continue,
         };
-        dbg!(&outpath);
 
         if file.is_dir() {
             fs::create_dir_all(&outpath)?;

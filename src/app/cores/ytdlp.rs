@@ -78,11 +78,13 @@ pub fn video_download(
     let log = String::from_utf8_lossy(&output.stdout);
     log::info!("{log}");
 
-    let status: i8 = if output.status.success() { 2 } else { 3 };
-
-    if status == 3 {
+    let status: i8 = if output.status.success() {
+        log::warn!("{}", String::from_utf8_lossy(&output.stderr));
+        2
+    } else {
         log::error!("{}", String::from_utf8_lossy(&output.stderr));
-    }
+        3
+    };
 
     status
 }
@@ -129,7 +131,7 @@ fn get_all_songs_name_from_regex_playlist(html: &str) -> Vec<String> {
             .as_str()
             .replace(r##""}],"accessibility""##, "")
             .replace(r##""title":{"runs":[{"text":""##, "");
-        dbg!(&a);
+        log::info!("{}", &a);
         list_of_song.push(a);
     }
 
@@ -332,8 +334,8 @@ impl Music {
             let _ =
                 std::fs::remove_file(Path::new(&self.directory).join(format!("{trash_cover}.jpg")));
         }
-
         if output.status.success() {
+            log::warn!("{}", String::from_utf8_lossy(&output.stderr));
             2
         } else {
             log::error!("{}", String::from_utf8_lossy(&output.stderr));

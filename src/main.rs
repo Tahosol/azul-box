@@ -33,6 +33,7 @@ async fn main() -> eframe::Result {
         .daily_file(&log, LevelFilter::Info)
         .daily_file(&log, LevelFilter::Warn)
         .daily_file(&log, LevelFilter::Error)
+        .retention_days(7)
         .init();
 
     let options = match icon_data::from_png_bytes(ICON) {
