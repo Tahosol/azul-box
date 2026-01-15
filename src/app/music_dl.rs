@@ -1,5 +1,4 @@
 use crate::app::cores::depen_manager::Depen;
-
 use crate::app::cores::url_checker::{UrlStatus, playlist_check};
 use crate::app::cores::{
     notify::{button_sound, done_sound, fail_sound},
@@ -9,6 +8,7 @@ use crate::app::share_view::lang_widget::LangThing;
 use crate::app::share_view::url_status_view;
 use eframe::egui::{self, Color32};
 use native_dialog::DialogBuilder;
+use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 use std::sync::Arc;
@@ -36,7 +36,7 @@ pub struct MusicDownload {
     pub url_status: UrlStatus,
 }
 
-use crate::app::cores::config;
+use crate::app::cores::{config, files};
 
 impl Default for MusicDownload {
     fn default() -> Self {
@@ -408,6 +408,32 @@ impl MusicDownload {
                     {
                         let _ = button_sound();
                         let _ = Command::new("pkill").arg("yt-dlp").output();
+                    }
+                }
+            }
+            if self.status.load(Ordering::Relaxed) == 1 {
+                if let Some(file) = files::file_finder_no_name(&self.out_directory, &["part"]) {
+                    match fs::metadata(&file) {
+                        Ok(value) => {
+                            if let Some(f) = file.file_name().and_then(|f| f.to_str()) {
+                                ui.label(
+                                    egui::RichText::new(format!(
+                                        "{f}: {} Mib",
+                                        (value.len() / 1024 / 1024)
+                                    ))
+                                    .color(Color32::LIGHT_BLUE),
+                                );
+                            }
+                        }
+
+                        Err(e) => {
+                            if let Some(f) = file.file_name().and_then(|f| f.to_str()) {
+                                ui.label(
+                                    egui::RichText::new(format!("{f}: {}", e))
+                                        .color(Color32::LIGHT_BLUE),
+                                );
+                            }
+                        }
                     }
                 }
             }

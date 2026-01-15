@@ -20,3 +20,20 @@ pub fn file_finder(directory: &str, filename: &str, matchs: &[&str]) -> Option<P
     }
     None
 }
+
+pub fn file_finder_no_name(directory: &str, matchs: &[&str]) -> Option<PathBuf> {
+    let elements = fs::read_dir(&directory).ok()?;
+
+    for item in elements {
+        let path = item.ok()?.path();
+        if path.is_file() {
+            if let Some(ext) = path.extension().and_then(|ext| ext.to_str()) {
+                if matchs.contains(&ext) {
+                    let good_file = Some(path);
+                    return good_file;
+                }
+            }
+        }
+    }
+    None
+}
