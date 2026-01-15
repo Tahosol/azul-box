@@ -16,7 +16,6 @@
 
 **If you want to install binary please check out on my [codeberg](https://codeberg.org/Tahoso/azul-box)**
 
-This project is in a maintenance mode-ish state. I'll fix any app-breaking bugs that appear from time to time. PRs are still welcome for features, bug fixes, etc. I may still add features when I feel like it. The reason for this status is that the software is completely functional for my use case, and the code is kinda sucky which make me feel lazy.
 
 ## Feature
 
