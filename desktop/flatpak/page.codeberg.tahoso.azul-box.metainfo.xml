@@ -65,6 +65,18 @@
 
   <releases>
 
+  <release version="v0.2.4-1" date="2026-1-15">
+    <url
+                type="details"
+            >https://codeberg.org/Tahoso/azul-box/releases/tag/v0.2.4-1</url>
+    <description>
+        <ul>
+          <li>hot fix for better log</li>
+          <li>downloading file indicator</li>
+        </ul>
+    </description>
+    </release>
+
   <release version="v0.2.4" date="2026-1-14">
     <url
                 type="details"

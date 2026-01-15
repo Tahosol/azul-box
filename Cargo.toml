@@ -1,7 +1,7 @@
 [package]
 name = "azul-box"
 authors = ["Tahoso", "https://codeberg.org/Tahoso/azul-box"]
-version = "0.2.4"
+version = "0.2.4-1"
 edition = "2024"
 description = "A utility box for ffmpeg, yt-dlp, and more"
 license = "GPL-3.0-only"
