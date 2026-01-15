@@ -14,7 +14,7 @@
 
 **The Github repo is just a mirror for my [codeberg](https://codeberg.org/Tahoso/azul-box)**
 
-**If you want to install binary please check out on my [codeberg](https://codeberg.org/Tahoso/azul-box)**
+**If you want to install binary please check out on my [codeberg](https://codeberg.org/Tahoso/azul-box/releases)**
 
 
 ## Feature
@@ -35,35 +35,9 @@ The features will be really random because this is a software I made to randomly
 - ffmpeg
 - python
 
-### Archlinux:
-
-```
-sudo pacman -S cargo ffmpeg python
-```
-
-### Linuxmint(Ubtuntu based):
-
-```
-sudo apt install cargo libasound2-dev ffmpeg python3.12
-```
-
-### openSUSE Tumbleweed:
-
-You may need to add some extra official opensuse repo.
-
-```
-sudo zypper in cargo alsa-devel python315
-```
-
-### Fedora(non atomic):
-
-```
-sudo dnf install cargo alsa-lib-devel ffmpeg-free python3.11
-```
-
 ## Installation
 
-flatpak:
+flatpak(strongly recommended):
 
 ```
 flatpak install flathub page.codeberg.tahoso.azul-box
@@ -78,7 +52,7 @@ sudo chmod +x install.sh
 ./install.sh
 ```
 
-Or download the binary on [codeberg](https://codeberg.org/Tahoso/azul-box)
+Or download the binary on [codeberg](https://codeberg.org/Tahoso/azul-box/releases)(make sure you have installed all dependencies first)
 
 ## Uninstallation
 
