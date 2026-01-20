@@ -76,6 +76,7 @@ pub struct Universal {
     pub language: String,
     pub use_cookies: bool,
     pub cookies: Option<String>,
+    pub faq: Option<bool>,
 }
 #[derive(Debug, Serialize, Deserialize)]
 pub struct VideoDl {
@@ -105,6 +106,7 @@ impl Default for Config {
                 language: "en".to_string(),
                 use_cookies: false,
                 cookies: None,
+                faq: None,
             },
             video_dl: VideoDl {
                 format: 1,

@@ -14,6 +14,7 @@ use eframe::egui::Color32;
 use ftail::Ftail;
 use log::LevelFilter;
 
+use crate::app::cores::config;
 use crate::app::cores::{
     config::{config_file_default, get_log_path},
     depen_manager::{Depen, get_path, install},
@@ -64,6 +65,8 @@ struct MainApp {
     app_data: Depen,
     is_install_depen: Arc<AtomicBool>,
     log_path: PathBuf,
+    faq: Option<bool>,
+    config_path: PathBuf,
 }
 
 impl Default for MainApp {
@@ -72,6 +75,14 @@ impl Default for MainApp {
         let yt_version = match ytdlp::version_check(&app_data) {
             Some(version) => version,
             None => "Missing".to_string(),
+        };
+        let config_path = config::get_config_file_path();
+        let configs = match config::load_config(&config_path) {
+            Ok(config) => config,
+            Err(e) => {
+                log::error!("Fail to read config {e}");
+                config::Config::default()
+            }
         };
         let log_path = get_log_path();
         Self {
@@ -88,6 +99,8 @@ impl Default for MainApp {
             app_data,
             is_install_depen: Arc::new(AtomicBool::new(false)),
             log_path,
+            faq: configs.universal.faq,
+            config_path,
         }
     }
 }
@@ -142,7 +155,7 @@ impl eframe::App for MainApp {
             .unwrap()
             .size = 24.0;
 
-        ctx.set_style(style);
+        ctx.set_style(style.clone());
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             ui.vertical_centered_justified(|ui| {
                 ui.heading("Azul Box");
@@ -195,6 +208,30 @@ impl eframe::App for MainApp {
                                             }
                                         }
                                     });
+                                }
+                            }
+                            if ui
+                                .button(
+                                    egui::RichText::new("FAQ")
+                                        .size(20.0)
+                                        .color(Color32::DARK_GRAY),
+                                )
+                                .clicked()
+                            {
+                                if self.faq.is_none() {
+                                    self.faq = Some(true);
+                                } else {
+                                    self.faq = None;
+                                }
+                                match config::modifier_config(&self.config_path, |cfg| {
+                                    cfg.universal.faq = self.faq
+                                }) {
+                                    Ok(_) => {
+                                        log::info!("Format successfully changed");
+                                    }
+                                    Err(e) => {
+                                        log::error!("Fail change format {e}");
+                                    }
                                 }
                             }
                         });
@@ -254,10 +291,22 @@ impl eframe::App for MainApp {
                     ));
                     ui.separator();
                 });
+            if self.faq.is_none() {
+                egui::Window::new("FAQ").auto_sized().default_open(true).anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0]).show(ctx, |ui| {
+                    ui.label(egui::RichText::new("- If Azul Box stops working, please use the Update button to install the newest version of the YouTube downloader and see if it fixes the bug.").size(18.0));
+                    ui.label(egui::RichText::new("- There is a Log button in the About tab that will show you all the logs of your usage for debugging purposes.").size(18.0));
+                    ui.label(egui::RichText::new("- In a Flatpak environment, Azul Box can only install video and audio into the Downloads, Video, Music directories.").size(18.0));
+                    ui.label(egui::RichText::new("- For the music downloader, lyrics (if they exist) will be embedded into your audio file. You will need an audio player that supports this (Elisa is recommended).").size(18.0));
+                    ui.label(egui::RichText::new("- Lyrics sources are ordered as follows: Kugou = 0, lrclib = 1, and YouTube = 2. This means that if you enable all sources and each provides lyrics, the Kugou lyrics will be embedded into your file.").size(18.0));
+                    ui.label(egui::RichText::new("- For now, the cookies function for YouTube downloads does NOT work. Please don’t use it (I will fix it in the future).").size(18.0));
+                    ui.label(egui::RichText::new("This message can be turned off completely using a button in the About tab.").color(Color32::DARK_GRAY).size(25.0).background_color(Color32::LIGHT_BLUE));
+                });
+            }
             if self.yt {
                 //music
                 egui::Window::new("Music-dl")
                     .default_open(false)
+                    .default_pos(egui::Pos2::new(100.0, 100.0))
                     .resizable(false)
                     .show(ctx, |ui| self.music_download.ui(ui, &self.app_data));
                 //Video

@@ -257,7 +257,7 @@ impl MusicDownload {
 
                     ui.separator();
 
-                    let check = ui.checkbox(&mut self.lrclib, "Liblrc lyrics");
+                    let check = ui.checkbox(&mut self.lrclib, "Lrclib lyrics");
                     if check.changed() {
                         match config::modifier_config(&self.config_path, |cfg| {
                             cfg.music_dl.liblrc = self.lrclib
