@@ -55,20 +55,21 @@ impl Default for MusicDownload {
             link: String::new(),
             out_directory: default_directory,
             status: Arc::new(AtomicI8::new(0)), // 0 = nothing / 1 = pending / 2 = Done / 3 = Fail
-            format: configs.music_dl.format,
-            lyrics: configs.music_dl.lyrics,
-            kugou_lyrics: configs.music_dl.kugou_lyrics,
-            frag: configs.music_dl.fragments,
-            sub_lang: configs.universal.language,
-            auto_lyric: configs.music_dl.auto_gen_sub,
-            sim_rate: configs.music_dl.threshold,
-            musicbrainz: configs.music_dl.musicbrainz,
-            lrclib: configs.music_dl.liblrc,
+            // The unwrap here is good me in the futur pls DONT "FIX" this. the value is guarantee to be Some
+            format: configs.music_dl.format.unwrap(),
+            lyrics: configs.music_dl.lyrics.unwrap(),
+            kugou_lyrics: configs.music_dl.kugou_lyrics.unwrap(),
+            frag: configs.music_dl.fragments.unwrap(),
+            sub_lang: configs.universal.language.unwrap(),
+            auto_lyric: configs.music_dl.auto_gen_sub.unwrap(),
+            sim_rate: configs.music_dl.threshold.unwrap(),
+            musicbrainz: configs.music_dl.musicbrainz.unwrap(),
+            lrclib: configs.music_dl.liblrc.unwrap(),
             cookies: configs.universal.cookies,
             config_path: path,
-            use_cookies: configs.universal.use_cookies,
-            crop_cover: configs.music_dl.crop_cover,
-            use_playlist_cover: configs.music_dl.use_playlist_cover,
+            use_cookies: configs.universal.use_cookies.unwrap(),
+            crop_cover: configs.music_dl.crop_cover.unwrap(),
+            use_playlist_cover: configs.music_dl.use_playlist_cover.unwrap(),
             sanitize_lyrics: false,
             url_status: UrlStatus::None,
         }
@@ -86,7 +87,7 @@ impl MusicDownload {
                 let check = ui.checkbox(&mut self.musicbrainz, "");
                 if check.changed() {
                     match config::modifier_config(&self.config_path, |cfg| {
-                        cfg.music_dl.musicbrainz = self.musicbrainz
+                        cfg.music_dl.musicbrainz = Some(self.musicbrainz)
                     }) {
                         Ok(_) => {
                             log::info!("musicbrainz changed");
@@ -102,7 +103,7 @@ impl MusicDownload {
             let response = ui.add(slider);
             if response.changed() {
                 match config::modifier_config(&self.config_path, |cfg| {
-                    cfg.music_dl.threshold = self.sim_rate
+                    cfg.music_dl.threshold = Some(self.sim_rate)
                 }) {
                     Ok(_) => {
                         log::info!("Changed threshold");
@@ -128,7 +129,7 @@ impl MusicDownload {
             if ui.button(name).clicked() {
                 self.format = numbername;
                 match config::modifier_config(&self.config_path, |cfg| {
-                    cfg.music_dl.format = self.format
+                    cfg.music_dl.format = Some(self.format)
                 }) {
                     Ok(_) => {
                         log::info!("Changed format");
@@ -150,7 +151,7 @@ impl MusicDownload {
             {
                 self.auto_lyric = false;
                 match config::modifier_config(&self.config_path, |cfg| {
-                    cfg.music_dl.auto_gen_sub = self.auto_lyric
+                    cfg.music_dl.auto_gen_sub = Some(self.auto_lyric)
                 }) {
                     Ok(_) => {
                         log::info!("Changed auto lyric");
@@ -164,7 +165,7 @@ impl MusicDownload {
             if ui.button("Auto generated").clicked() {
                 self.auto_lyric = true;
                 match config::modifier_config(&self.config_path, |cfg| {
-                    cfg.music_dl.auto_gen_sub = self.auto_lyric
+                    cfg.music_dl.auto_gen_sub = Some(self.auto_lyric)
                 }) {
                     Ok(_) => {
                         log::info!("Changed auto lyric");
@@ -186,7 +187,7 @@ impl MusicDownload {
                 let check = ui.checkbox(&mut self.use_cookies, "Use cookies");
                 if check.changed() {
                     match config::modifier_config(&self.config_path, |cfg| {
-                        cfg.universal.use_cookies = self.use_cookies
+                        cfg.universal.use_cookies = Some(self.use_cookies)
                     }) {
                         Ok(_) => {
                             log::info!("Changed use_cookies");
@@ -200,7 +201,7 @@ impl MusicDownload {
                     let check_1 = ui.checkbox(&mut self.use_playlist_cover, "Use playlist cover");
                     if check_1.changed() {
                         match config::modifier_config(&self.config_path, |cfg| {
-                            cfg.music_dl.use_playlist_cover = self.use_playlist_cover
+                            cfg.music_dl.use_playlist_cover = Some(self.use_playlist_cover)
                         }) {
                             Ok(_) => {
                                 log::info!("Changed use_playlist_cover");
@@ -213,7 +214,7 @@ impl MusicDownload {
                     let check_2 = ui.checkbox(&mut self.crop_cover, "Crop cover to 1:1");
                     if check_2.changed() {
                         match config::modifier_config(&self.config_path, |cfg| {
-                            cfg.music_dl.crop_cover = self.crop_cover
+                            cfg.music_dl.crop_cover = Some(self.crop_cover)
                         }) {
                             Ok(_) => {
                                 log::info!("Changed crop_cover");
@@ -240,7 +241,7 @@ impl MusicDownload {
                     let youtube_lyrics = ui.checkbox(&mut self.lyrics, "youtube lyrics");
                     if youtube_lyrics.changed() {
                         match config::modifier_config(&self.config_path, |cfg| {
-                            cfg.music_dl.lyrics = self.lyrics
+                            cfg.music_dl.lyrics = Some(self.lyrics)
                         }) {
                             Ok(_) => {
                                 log::info!("Changed yt lyrics");
@@ -260,7 +261,7 @@ impl MusicDownload {
                     let check = ui.checkbox(&mut self.lrclib, "Lrclib lyrics");
                     if check.changed() {
                         match config::modifier_config(&self.config_path, |cfg| {
-                            cfg.music_dl.liblrc = self.lrclib
+                            cfg.music_dl.liblrc = Some(self.lrclib)
                         }) {
                             Ok(_) => {
                                 log::info!("Changed Liblrc");
@@ -274,7 +275,7 @@ impl MusicDownload {
                     let kugou = ui.checkbox(&mut self.kugou_lyrics, "kugou lyrics");
                     if kugou.changed() {
                         match config::modifier_config(&self.config_path, |cfg| {
-                            cfg.music_dl.kugou_lyrics = self.kugou_lyrics
+                            cfg.music_dl.kugou_lyrics = Some(self.kugou_lyrics)
                         }) {
                             Ok(_) => {
                                 log::info!("Changed kugou");
@@ -291,7 +292,7 @@ impl MusicDownload {
                     ui.add(egui::widgets::Slider::new(&mut self.frag, 1..=10).text("Fragments"));
                 if check.changed() {
                     match config::modifier_config(&self.config_path, |cfg| {
-                        cfg.music_dl.fragments = self.frag
+                        cfg.music_dl.fragments = Some(self.frag)
                     }) {
                         Ok(_) => {
                             log::info!("Changed frag");

@@ -41,8 +41,13 @@ pub fn load_config(path: &Path) -> Result<Config, Box<dyn std::error::Error>> {
     let toml_string = fs::read_to_string(path)?;
     let config = toml::from_str::<Config>(&toml_string);
     match config {
-        Ok(configs) => {
-            return Ok(configs);
+        Ok(mut configs) => {
+            let con = configs.repair();
+            match save_config(con, &get_config_file_path()) {
+                Ok(_) => log::info!("Saved config repaired"),
+                Err(e) => log::error!("{}", e),
+            }
+            return Ok(con.clone());
         }
         Err(_) => {
             if get_config_file_path().exists() {
@@ -63,71 +68,137 @@ where
     save_config(&config, path)?;
     Ok(())
 }
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Config {
     pub universal: Universal,
     pub video_dl: VideoDl,
     pub music_dl: MusicDl,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Universal {
-    pub language: String,
-    pub use_cookies: bool,
+    pub language: Option<String>,
+    pub use_cookies: Option<bool>,
     pub cookies: Option<String>,
     pub faq: Option<bool>,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct VideoDl {
-    pub format: i8,
-    pub subtitle: bool,
-    pub auto_gen_sub: bool,
-    pub fragments: i8,
-    pub resolution: i32,
+    pub format: Option<i8>,
+    pub subtitle: Option<bool>,
+    pub auto_gen_sub: Option<bool>,
+    pub fragments: Option<i8>,
+    pub resolution: Option<i32>,
+    pub disable_radio: Option<bool>,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MusicDl {
-    pub format: i8,
-    pub lyrics: bool,
-    pub auto_gen_sub: bool,
-    pub liblrc: bool,
-    pub kugou_lyrics: bool,
-    pub musicbrainz: bool,
-    pub threshold: i8,
-    pub fragments: i8,
-    pub crop_cover: bool,
-    pub use_playlist_cover: bool,
+    pub format: Option<i8>,
+    pub lyrics: Option<bool>,
+    pub auto_gen_sub: Option<bool>,
+    pub liblrc: Option<bool>,
+    pub kugou_lyrics: Option<bool>,
+    pub musicbrainz: Option<bool>,
+    pub threshold: Option<i8>,
+    pub fragments: Option<i8>,
+    pub crop_cover: Option<bool>,
+    pub use_playlist_cover: Option<bool>,
+    pub disable_radio: Option<bool>,
 }
 impl Default for Config {
     fn default() -> Self {
         Self {
             universal: Universal {
-                language: "en".to_string(),
-                use_cookies: false,
+                language: Some("en".to_string()),
+                use_cookies: Some(false),
                 cookies: None,
                 faq: None,
             },
             video_dl: VideoDl {
-                format: 1,
-                subtitle: true,
-                auto_gen_sub: false,
-                fragments: 1,
-                resolution: 1080,
+                format: Some(1),
+                subtitle: Some(true),
+                auto_gen_sub: Some(false),
+                fragments: Some(1),
+                resolution: Some(1080),
+                disable_radio: Some(true),
             },
             music_dl: MusicDl {
-                format: 1,
-                lyrics: true,
-                auto_gen_sub: false,
-                liblrc: false,
-                kugou_lyrics: false,
-                musicbrainz: false,
-                threshold: 90,
-                fragments: 1,
-                crop_cover: true,
-                use_playlist_cover: true,
+                format: Some(1),
+                lyrics: Some(true),
+                auto_gen_sub: Some(false),
+                liblrc: Some(false),
+                kugou_lyrics: Some(false),
+                musicbrainz: Some(false),
+                threshold: Some(90),
+                fragments: Some(1),
+                crop_cover: Some(true),
+                use_playlist_cover: Some(true),
+                disable_radio: Some(true),
             },
         }
+    }
+}
+
+impl Config {
+    fn repair(&mut self) -> &mut Config {
+        if self.universal.language.is_none() {
+            self.universal.language = Config::default().universal.language;
+        }
+        if self.universal.use_cookies.is_none() {
+            self.universal.use_cookies = Config::default().universal.use_cookies;
+        }
+        if self.video_dl.format.is_none() {
+            self.video_dl.format = Config::default().video_dl.format;
+        }
+        if self.video_dl.disable_radio.is_none() {
+            self.video_dl.disable_radio = Config::default().video_dl.disable_radio;
+        }
+        if self.video_dl.subtitle.is_none() {
+            self.video_dl.subtitle = Config::default().video_dl.subtitle;
+        }
+        if self.video_dl.auto_gen_sub.is_none() {
+            self.video_dl.auto_gen_sub = Config::default().video_dl.auto_gen_sub;
+        }
+        if self.video_dl.fragments.is_none() {
+            self.video_dl.fragments = Config::default().video_dl.fragments;
+        }
+        if self.video_dl.resolution.is_none() {
+            self.video_dl.resolution = Config::default().video_dl.resolution;
+        }
+        if self.music_dl.format.is_none() {
+            self.music_dl.format = Config::default().music_dl.format;
+        }
+        if self.music_dl.lyrics.is_none() {
+            self.music_dl.lyrics = Config::default().music_dl.lyrics;
+        }
+        if self.music_dl.auto_gen_sub.is_none() {
+            self.music_dl.auto_gen_sub = Config::default().music_dl.auto_gen_sub;
+        }
+        if self.music_dl.liblrc.is_none() {
+            self.music_dl.liblrc = Config::default().music_dl.liblrc;
+        }
+        if self.music_dl.kugou_lyrics.is_none() {
+            self.music_dl.kugou_lyrics = Config::default().music_dl.kugou_lyrics;
+        }
+        if self.music_dl.musicbrainz.is_none() {
+            self.music_dl.musicbrainz = Config::default().music_dl.musicbrainz;
+        }
+        if self.music_dl.threshold.is_none() {
+            self.music_dl.threshold = Config::default().music_dl.threshold;
+        }
+        if self.music_dl.fragments.is_none() {
+            self.music_dl.fragments = Config::default().music_dl.fragments;
+        }
+        if self.music_dl.crop_cover.is_none() {
+            self.music_dl.crop_cover = Config::default().music_dl.crop_cover;
+        }
+        if self.music_dl.use_playlist_cover.is_none() {
+            self.music_dl.use_playlist_cover = Config::default().music_dl.use_playlist_cover;
+        }
+        if self.music_dl.disable_radio.is_none() {
+            self.music_dl.disable_radio = Config::default().music_dl.disable_radio;
+        }
+        self
     }
 }
 

@@ -192,7 +192,7 @@ impl LangThing {
                                 let path_config = get_config_file_path();
                                 log::info!("{path_config:?}");
                                 match config::modifier_config(&path_config, |cfg| {
-                                    cfg.universal.language = lang_in.clone()
+                                    cfg.universal.language = Some(lang_in.clone())
                                 }) {
                                     Ok(_) => {
                                         log::info!("Saved languages")

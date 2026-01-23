@@ -51,15 +51,16 @@ impl Default for VideoDownload {
             link: String::new(),
             out_directory: default_directory,
             status: Arc::new(AtomicI8::new(0)), // 0 = nothing / 1 = pending / 2 = Done / 3 = Fail
-            format: configs.video_dl.format,
-            frag: configs.video_dl.fragments,
-            subtitle: configs.video_dl.subtitle,
-            sub_lang: configs.universal.language,
-            auto_sub: configs.video_dl.auto_gen_sub,
+            // unless user self sabotage, the unwrap here is good. me in the futur pls DONT "FIX" this. the value is guarantee to be Some
+            format: configs.video_dl.format.unwrap(),
+            frag: configs.video_dl.fragments.unwrap(),
+            subtitle: configs.video_dl.subtitle.unwrap(),
+            sub_lang: configs.universal.language.unwrap(),
+            auto_sub: configs.video_dl.auto_gen_sub.unwrap(),
             config_path: path,
             cookies: configs.universal.cookies,
-            use_cookies: configs.universal.use_cookies,
-            res: configs.video_dl.resolution,
+            use_cookies: configs.universal.use_cookies.unwrap(),
+            res: configs.video_dl.resolution.unwrap(),
             url_status: UrlStatus::None,
         }
     }
@@ -83,7 +84,7 @@ impl VideoDownload {
             if ui.button(name).clicked() {
                 self.format = numbername;
                 match config::modifier_config(&self.config_path, |cfg| {
-                    cfg.video_dl.format = self.format
+                    cfg.video_dl.format = Some(self.format)
                 }) {
                     Ok(_) => {
                         log::info!("Format successfully changed");
@@ -109,7 +110,7 @@ impl VideoDownload {
             if ui.button(name).clicked() {
                 self.res = res;
                 match config::modifier_config(&self.config_path, |cfg| {
-                    cfg.video_dl.resolution = self.res
+                    cfg.video_dl.resolution = Some(self.res)
                 }) {
                     Ok(_) => {
                         log::info!("Resolution successfully changed");
@@ -131,7 +132,7 @@ impl VideoDownload {
             {
                 self.auto_sub = false;
                 match config::modifier_config(&self.config_path, |cfg| {
-                    cfg.video_dl.auto_gen_sub = self.auto_sub
+                    cfg.video_dl.auto_gen_sub = Some(self.auto_sub)
                 }) {
                     Ok(_) => {
                         log::info!("Auto subtitle generation successfully changed");
@@ -145,7 +146,7 @@ impl VideoDownload {
             if ui.button("Auto generated").clicked() {
                 self.auto_sub = true;
                 match config::modifier_config(&self.config_path, |cfg| {
-                    cfg.video_dl.auto_gen_sub = self.auto_sub
+                    cfg.video_dl.auto_gen_sub = Some(self.auto_sub)
                 }) {
                     Ok(_) => {
                         log::info!("Changed auto_sub");
@@ -163,7 +164,7 @@ impl VideoDownload {
                 let check = ui.checkbox(&mut self.use_cookies, "Use cookies");
                 if check.changed() {
                     match config::modifier_config(&self.config_path, |cfg| {
-                        cfg.universal.use_cookies = self.use_cookies
+                        cfg.universal.use_cookies = Some(self.use_cookies)
                     }) {
                         Ok(_) => {
                             log::info!("Cookie usage successfully changed");
@@ -194,7 +195,7 @@ impl VideoDownload {
                             let check = ui.checkbox(&mut self.subtitle, "");
                             if check.changed() {
                                 match config::modifier_config(&self.config_path, |cfg| {
-                                    cfg.video_dl.subtitle = self.subtitle
+                                    cfg.video_dl.subtitle = Some(self.subtitle)
                                 }) {
                                     Ok(_) => {
                                         log::info!("Subtitle settings successfully changed");
@@ -214,7 +215,7 @@ impl VideoDownload {
                             let check = ui.checkbox(&mut self.subtitle, "");
                             if check.changed() {
                                 match config::modifier_config(&self.config_path, |cfg| {
-                                    cfg.video_dl.subtitle = self.subtitle
+                                    cfg.video_dl.subtitle = Some(self.subtitle)
                                 }) {
                                     Ok(_) => {
                                         log::info!("Changed subtitle");
@@ -232,7 +233,7 @@ impl VideoDownload {
                     ui.add(egui::widgets::Slider::new(&mut self.frag, 1..=10).text("Fragments"));
                 if c.changed() {
                     match config::modifier_config(&self.config_path, |cfg| {
-                        cfg.video_dl.fragments = self.frag
+                        cfg.video_dl.fragments = Some(self.frag)
                     }) {
                         Ok(_) => {
                             log::info!("Fragment settings successfully changed");
