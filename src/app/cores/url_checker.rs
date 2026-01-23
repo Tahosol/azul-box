@@ -16,3 +16,11 @@ pub fn playlist_check(url: &str) -> UrlStatus {
         UrlStatus::None
     }
 }
+
+pub fn remove_radio(url: &str) -> String {
+    if url.contains("&start_radio=1") && url.contains("&list=") {
+        return url.split("&list=").nth(0).unwrap_or_default().to_string();
+    } else {
+        return url.to_string();
+    }
+}

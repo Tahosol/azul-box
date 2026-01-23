@@ -1,5 +1,5 @@
 use crate::app::cores::depen_manager::Depen;
-use crate::app::cores::url_checker::{UrlStatus, playlist_check};
+use crate::app::cores::url_checker::{UrlStatus, playlist_check, remove_radio};
 use crate::app::share_view::lang_widget::LangThing;
 use crate::app::share_view::url_status_view;
 use eframe::egui::{self, Color32};
@@ -30,6 +30,7 @@ pub struct VideoDownload {
     pub use_cookies: bool,
     pub res: i32,
     url_status: UrlStatus,
+    disable_radio: bool,
 }
 
 use crate::app::cores::{config, files};
@@ -62,6 +63,7 @@ impl Default for VideoDownload {
             use_cookies: configs.universal.use_cookies.unwrap(),
             res: configs.video_dl.resolution.unwrap(),
             url_status: UrlStatus::None,
+            disable_radio: configs.video_dl.disable_radio.unwrap(),
         }
     }
 }
@@ -171,6 +173,19 @@ impl VideoDownload {
                         }
                         Err(e) => {
                             log::error!("Fail change use_cookies {e}");
+                        }
+                    }
+                }
+                let radio_toggle = ui.toggle_value(&mut self.disable_radio, "Disable radio");
+                if radio_toggle.changed() {
+                    match config::modifier_config(&self.config_path, |cfg| {
+                        cfg.video_dl.disable_radio = Some(self.disable_radio)
+                    }) {
+                        Ok(_) => {
+                            log::info!("Changed disable_radio");
+                        }
+                        Err(e) => {
+                            log::error!("Fail change disable_radio {e}");
                         }
                     }
                 }
@@ -284,6 +299,9 @@ impl VideoDownload {
 
             if self.status.load(Ordering::Relaxed) != 1 {
                 if ui.button("Download").clicked() {
+                    if self.disable_radio {
+                        self.link = remove_radio(&self.link)
+                    }
                     self.url_status = playlist_check(&self.link);
                     let _ = button_sound();
                     self.start_download_status();
