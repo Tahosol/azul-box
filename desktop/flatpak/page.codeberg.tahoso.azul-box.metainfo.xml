@@ -65,6 +65,19 @@
 
   <releases>
 
+  <release version="v0.2.5" date="2026-1-26">
+    <url
+                type="details"
+            >https://codeberg.org/Tahoso/azul-box/releases/tag/v0.2.5</url>
+    <description>
+        <ul>
+          <li>hot fix for youtube downloader</li>
+          <li>added a FAQ</li>
+          <li>handle config in a better way</li>
+        </ul>
+    </description>
+    </release>
+
   <release version="v0.2.4-1" date="2026-1-15">
     <url
                 type="details"
