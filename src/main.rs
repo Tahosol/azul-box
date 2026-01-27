@@ -110,6 +110,41 @@ impl eframe::App for MainApp {
         let mut style = (*ctx.style()).clone();
 
         if !self.run_on_start {
+            #[cfg(target_os = "linux")]
+            {
+                let old_yt = dirs::data_local_dir()
+                    .unwrap()
+                    .join("azulbox")
+                    .join("yt-dlp");
+                if let Ok(true) = old_yt.try_exists() {
+                    match fs::remove_file(&self.app_data.version) {
+                        Ok(_) => log::info!("Succes removed version"),
+                        Err(e) => log::info!("{e}"),
+                    }
+                    match fs::remove_file(&old_yt) {
+                        Ok(_) => log::info!("Succes removed old yt_dlp"),
+                        Err(e) => log::info!("{e}"),
+                    }
+                    self.is_install_depen
+                        .store(true, std::sync::atomic::Ordering::Relaxed);
+
+                    let progress = self.is_install_depen.clone();
+                    let dir = self.app_data.app_data.clone();
+
+                    tokio::task::spawn(async move {
+                        match install(&dir) {
+                            Ok(_) => {
+                                progress.store(false, std::sync::atomic::Ordering::Relaxed);
+                                log::info!("Updated dependencies");
+                            }
+                            Err(e) => {
+                                log::error!("dependencies install error {e}");
+                                let _ = fail_sound();
+                            }
+                        }
+                    });
+                }
+            }
             if let Ok(false) = self.app_data.version.try_exists()
                 && !self
                     .is_install_depen

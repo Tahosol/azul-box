@@ -14,7 +14,6 @@ use crate::app::cores::notify::done_sound;
 pub struct Depen {
     pub app_data: PathBuf,
     pub yt_dlp: PathBuf,
-    #[allow(dead_code)]
     pub deno: PathBuf,
     pub version: PathBuf,
     pub ffmpeg: Option<PathBuf>,
@@ -25,7 +24,10 @@ pub fn get_path() -> Depen {
     if OS == "linux" {
         Depen {
             app_data: data.clone(),
-            yt_dlp: data.join("yt-dlp"),
+            #[cfg(target_arch = "aarch64")]
+            yt_dlp: data.join("yt-dlp_linux_aarch64"),
+            #[cfg(target_arch = "x86_64")]
+            yt_dlp: data.join("yt-dlp_linux"),
             deno: data.join("deno"),
             version: data.join("version.json"),
             ffmpeg: None,
@@ -131,7 +133,16 @@ fn get_github_release(url: &str) -> Result<GithubRelease, Box<dyn Error>> {
 
 fn yt_dlp_install(dir: &Path, github: &GithubRelease) -> Result<GithubRelease, Box<dyn Error>> {
     let file = match OS {
-        "linux" => "yt-dlp",
+        "linux" => {
+            #[cfg(target_arch = "aarch64")]
+            {
+                "yt-dlp_linux_aarch64"
+            }
+            #[cfg(target_arch = "x86_64")]
+            {
+                "yt-dlp_linux"
+            }
+        }
         "windows" => "yt-dlp.exe",
         _ => return Err("Wrong OS".into()),
     };
@@ -144,7 +155,7 @@ fn yt_dlp_install(dir: &Path, github: &GithubRelease) -> Result<GithubRelease, B
     {
         use std::os::unix::fs::PermissionsExt;
 
-        fs::set_permissions(dir.join("yt-dlp"), fs::Permissions::from_mode(0o755))?;
+        fs::set_permissions(dir.join(file), fs::Permissions::from_mode(0o755))?;
     }
     Ok(github.clone())
 }
