@@ -163,19 +163,36 @@ impl VideoDownload {
     pub fn ui(&mut self, ui: &mut egui::Ui, depen: &Depen) {
         ui.horizontal(|ui| {
             ui.menu_button("Setting", |ui| {
-                let check = ui.checkbox(&mut self.use_cookies, "Use cookies");
-                if check.changed() {
-                    match config::modifier_config(&self.config_path, |cfg| {
-                        cfg.universal.use_cookies = Some(self.use_cookies)
-                    }) {
-                        Ok(_) => {
-                            log::info!("Cookie usage successfully changed");
-                        }
-                        Err(e) => {
-                            log::error!("Fail change use_cookies {e}");
+                ui.menu_button("cookies", |ui| {
+                    let check = ui.checkbox(&mut self.use_cookies, "Use cookies");
+                    if check.changed() {
+                        match config::modifier_config(&self.config_path, |cfg| {
+                            cfg.universal.use_cookies = Some(self.use_cookies)
+                        }) {
+                            Ok(_) => {
+                                log::info!("Cookie usage successfully changed");
+                            }
+                            Err(e) => {
+                                log::error!("Fail change use_cookies {e}");
+                            }
                         }
                     }
-                }
+                    if ui.button("Cookie directory").clicked() {
+                        let path = DialogBuilder::file()
+                            .set_location(&self.out_directory)
+                            .add_filter("cookies.txt", ["txt"])
+                            .open_single_file()
+                            .show()
+                            .unwrap();
+
+                        if let Some(p) = path {
+                            self.cookies = Some(p.to_string_lossy().into_owned());
+                        } else {
+                            log::info!("No file was selected.");
+                        }
+                    }
+                });
+
                 let radio_toggle = ui.toggle_value(&mut self.disable_radio, "Disable radio");
                 if radio_toggle.changed() {
                     match config::modifier_config(&self.config_path, |cfg| {
