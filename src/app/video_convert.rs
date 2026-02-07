@@ -3,10 +3,11 @@ use crate::app::cores::depen_manager::Depen;
 use crate::app::cores::notify::{button_sound, done_sound, fail_sound};
 use eframe::egui::{self, Color32};
 use native_dialog::DialogBuilder;
+use std::error::Error;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicI8, Ordering};
+use std::sync::{Arc, Mutex};
 
 pub struct VideoConvert {
     pub out_directory: String,
@@ -14,6 +15,7 @@ pub struct VideoConvert {
     pub format_in: String,
     pub format_out: String,
     pub input_file: String,
+    error_message: Arc<Mutex<String>>,
 }
 
 impl Default for VideoConvert {
@@ -27,6 +29,7 @@ impl Default for VideoConvert {
             status: Arc::new(AtomicI8::new(0)), // 0 = nothing / 1 = pending / 2 = Done / 3 = Fail
             format_in: String::new(),
             format_out: String::from("None"),
+            error_message: Arc::new(Mutex::new(String::new())),
         }
     }
 }
@@ -145,14 +148,19 @@ impl VideoConvert {
                     let format_out = self.format_out.clone();
                     let progress = self.status.clone();
                     let ffmpeg = depen.ffmpeg.clone();
+                    let error_message_clone = Arc::clone(&self.error_message);
 
                     tokio::task::spawn(async move {
-                        let status = download(input, directory, format_out, ffmpeg);
-                        progress.store(status, Ordering::Relaxed);
-                        if status == 2 {
-                            let _ = done_sound();
-                        } else {
-                            let _ = fail_sound();
+                        match download(input, directory, format_out, ffmpeg) {
+                            Ok(_) => {
+                                progress.store(2, Ordering::Relaxed);
+                                let _ = done_sound();
+                            }
+                            Err(e) => {
+                                *error_message_clone.lock().unwrap() = e.to_string();
+                                progress.store(3, Ordering::Relaxed);
+                                let _ = fail_sound();
+                            }
                         }
                     });
                 }
@@ -172,19 +180,37 @@ impl VideoConvert {
                     }
                 }
             }
+            if self.status.load(Ordering::Relaxed) == 3 {
+                ui.spacing();
+                ui.separator();
+                egui::ScrollArea::vertical()
+                    .max_height(100.0)
+                    .show(ui, |ui| {
+                        ui.label(
+                            egui::RichText::new(format!("{}", self.error_message.lock().unwrap()))
+                                .color(Color32::LIGHT_RED)
+                                .size(16.0),
+                        );
+                    });
+            }
         });
     }
 }
 
-fn download(input: String, directory: String, format_out: String, ffmpeg: Option<PathBuf>) -> i8 {
+fn download(
+    input: String,
+    directory: String,
+    format_out: String,
+    ffmpeg: Option<PathBuf>,
+) -> Result<(), Box<dyn Error>> {
     if input.is_empty() {
-        return 3;
+        return Err("No input".into());
     }
     let filename = Path::new(&input)
         .file_name()
         .expect("Fail to unwrap filename in img_convert")
         .to_str()
-        .expect("Fail to convert OSstr to &str");
+        .ok_or("Fail to convert OSstr to &str")?;
 
     let output = match ffmpeg {
         Some(f) => Command::new(f)
@@ -192,20 +218,21 @@ fn download(input: String, directory: String, format_out: String, ffmpeg: Option
             .arg(&input)
             .arg(format!("{}.{}", filename, format_out))
             .current_dir(directory)
-            .output()
-            .expect("Failed to execute ffmpeg"),
+            .output()?,
         None => Command::new("ffmpeg")
             .arg("-i")
             .arg(&input)
             .arg(format!("{}.{}", filename, format_out))
             .current_dir(directory)
-            .output()
-            .expect("Failed to execute ffmpeg"),
+            .output()?,
     };
 
     let status = output.status;
 
-    log::info!("{status}");
-    let status: i8 = if status.success() { 2 } else { 3 };
-    status
+    if status.success() {
+        Ok(())
+    } else {
+        log::error!("{}", String::from_utf8_lossy(&output.stderr));
+        Err(String::from_utf8_lossy(&output.stderr).into())
+    }
 }
