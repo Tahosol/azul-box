@@ -346,8 +346,6 @@ impl Music {
     }
 }
 #[cfg(target_os = "windows")]
-use std::error::Error;
-#[cfg(target_os = "windows")]
 fn get_html(url: &str) -> Result<String, Box<dyn Error>> {
     Ok(ureq::get(playlist_fix_url(url))
         .call()?
