@@ -11,8 +11,8 @@ use native_dialog::DialogBuilder;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicI8, Ordering};
+use std::sync::{Arc, Mutex};
 
 pub struct MusicDownload {
     pub link: String,
@@ -35,6 +35,7 @@ pub struct MusicDownload {
     pub sanitize_lyrics: bool,
     pub url_status: UrlStatus,
     pub disable_radio: bool,
+    error_message: Arc<Mutex<String>>,
 }
 
 use crate::app::cores::{config, files};
@@ -74,6 +75,7 @@ impl Default for MusicDownload {
             sanitize_lyrics: false,
             url_status: UrlStatus::None,
             disable_radio: configs.music_dl.disable_radio.unwrap(),
+            error_message: Arc::new(Mutex::new(String::new())),
         }
     }
 }
@@ -400,6 +402,7 @@ impl MusicDownload {
                     let sanitization = self.sanitize_lyrics;
                     let yt_dlp_path = depen.yt_dlp.clone();
                     let kugou = self.kugou_lyrics;
+                    let error_message_clone = Arc::clone(&self.error_message);
 
                     tokio::task::spawn(async move {
                         let yt = ytdlp::Music {
@@ -421,12 +424,16 @@ impl MusicDownload {
                             sanitize_lyrics: sanitization,
                             yt_dlp: yt_dlp_path,
                         };
-                        let status = yt.download();
-                        progress.store(status, Ordering::Relaxed);
-                        if status == 2 {
-                            let _ = done_sound();
-                        } else {
-                            let _ = fail_sound();
+                        match yt.download() {
+                            Ok(_) => {
+                                progress.store(2, Ordering::Relaxed);
+                                let _ = done_sound();
+                            }
+                            Err(e) => {
+                                progress.store(3, Ordering::Relaxed);
+                                *error_message_clone.lock().unwrap() = e.to_string();
+                                let _ = fail_sound();
+                            }
                         }
                     });
                 }
@@ -471,6 +478,18 @@ impl MusicDownload {
                         }
                     }
                 }
+            } else if self.status.load(Ordering::Relaxed) == 3 {
+                ui.spacing();
+                ui.separator();
+                egui::ScrollArea::vertical()
+                    .max_height(100.0)
+                    .show(ui, |ui| {
+                        ui.label(
+                            egui::RichText::new(format!("{}", self.error_message.lock().unwrap()))
+                                .color(Color32::LIGHT_RED)
+                                .size(16.0),
+                        );
+                    });
             }
         });
     }

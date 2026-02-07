@@ -6,8 +6,8 @@ use eframe::egui::{self, Color32};
 use native_dialog::DialogBuilder;
 use std::fs;
 use std::process::Command;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicI8, Ordering};
+use std::sync::{Arc, Mutex};
 
 use crate::app::cores::{
     notify::{button_sound, done_sound, fail_sound},
@@ -31,6 +31,7 @@ pub struct VideoDownload {
     pub res: i32,
     url_status: UrlStatus,
     disable_radio: bool,
+    error_message: Arc<Mutex<String>>,
 }
 
 use crate::app::cores::{config, files};
@@ -64,6 +65,7 @@ impl Default for VideoDownload {
             res: configs.video_dl.resolution.unwrap(),
             url_status: UrlStatus::None,
             disable_radio: configs.video_dl.disable_radio.unwrap(),
+            error_message: Arc::new(Mutex::new(String::new())),
         }
     }
 }
@@ -335,17 +337,22 @@ impl VideoDownload {
                     let use_cook = self.use_cookies;
                     let res = self.res;
                     let yt_dlp = depen.yt_dlp.clone();
+                    let error_message_clone = Arc::clone(&self.error_message);
 
                     tokio::task::spawn(async move {
-                        let status = ytdlp::video_download(
+                        match ytdlp::video_download(
                             link, directory, format, frags, subtile, &lang, auto_gen, cook,
                             use_cook, res, yt_dlp,
-                        );
-                        progress.store(status, Ordering::Relaxed);
-                        if status == 2 {
-                            let _ = done_sound();
-                        } else {
-                            let _ = fail_sound();
+                        ) {
+                            Ok(_) => {
+                                progress.store(2, Ordering::Relaxed);
+                                let _ = done_sound();
+                            }
+                            Err(e) => {
+                                progress.store(3, Ordering::Relaxed);
+                                *error_message_clone.lock().unwrap() = e.to_string();
+                                let _ = fail_sound();
+                            }
                         }
                     });
                 }
@@ -390,6 +397,18 @@ impl VideoDownload {
                         }
                     }
                 }
+            } else if self.status.load(Ordering::Relaxed) == 3 {
+                ui.spacing();
+                ui.separator();
+                egui::ScrollArea::vertical()
+                    .max_height(100.0)
+                    .show(ui, |ui| {
+                        ui.label(
+                            egui::RichText::new(format!("{}", self.error_message.lock().unwrap()))
+                                .color(Color32::LIGHT_RED)
+                                .size(16.0),
+                        );
+                    });
             }
         });
     }

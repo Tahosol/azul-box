@@ -1,6 +1,7 @@
 use crate::app::cores::depen_manager::{Depen, get_path};
 use crate::app::cores::lrclib::lrclib_fetch;
 use crate::app::cores::{kugou, musicbrainz};
+use std::error::Error;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -23,7 +24,7 @@ pub fn video_download(
     use_cookies: bool,
     res: i32,
     yt_dlp: PathBuf,
-) -> i8 {
+) -> Result<(), Box<dyn Error>> {
     let n = frag.to_string().to_owned();
 
     let mut yt = Command::new(yt_dlp);
@@ -70,23 +71,18 @@ pub fn video_download(
         yt.arg("-f")
             .arg(format!("bv*[ext=mp4][height<={res}]+ba[ext=m4a]"));
     }
-    let output = yt
-        .arg(link)
-        .output()
-        .expect("Failed to execute yt-dlp in Music");
+    let output = yt.arg(link).output()?;
 
     let log = String::from_utf8_lossy(&output.stdout);
     log::info!("{log}");
 
-    let status: i8 = if output.status.success() {
+    if output.status.success() {
         log::warn!("{}", String::from_utf8_lossy(&output.stderr));
-        2
+        Ok(())
     } else {
         log::error!("{}", String::from_utf8_lossy(&output.stderr));
-        3
-    };
-
-    status
+        Err(String::from_utf8_lossy(&output.stderr).into())
+    }
 }
 use crate::app::cores::cover;
 use crate::app::cores::lyrics;
@@ -159,14 +155,14 @@ fn playlist_fix_url(url: &str) -> String {
 }
 
 impl Music {
-    pub fn download(self) -> i8 {
+    pub fn download(self) -> Result<(), Box<dyn Error>> {
         let format_name = match self.format {
             1 => "opus",
             2 => "flac",
             3 => "mp3",
             4 => "m4a",
             5 => "wav",
-            _ => return 3,
+            _ => return Err("Invalided format".into()),
         };
         let n = self.frags.to_string();
         log::info!("{}", n);
@@ -215,9 +211,9 @@ impl Music {
             }
         }
         yt.arg(&self.link);
-        let output = yt.output().expect("Failed to execute yt-dlp in Music");
+        let output = yt.output()?;
 
-        let log = String::from_utf8(output.stdout).unwrap_or_default();
+        let log = String::from_utf8(output.stdout)?;
         log::info!("{}", log);
 
         let play: Option<String>;
@@ -276,11 +272,17 @@ impl Music {
             log::info!("i: {i}");
 
             #[cfg(target_os = "linux")]
-            let item = i.split("Adding metadata to \"").last().unwrap();
+            let item = i
+                .split("Adding metadata to \"")
+                .last()
+                .ok_or("fail to get file for audio")?;
             #[cfg(target_os = "linux")]
             let item = item[0..item.len() - 1].to_string();
             #[cfg(target_os = "linux")]
-            let filename = item.split(&extension).next().unwrap();
+            let filename = item
+                .split(&extension)
+                .next()
+                .ok_or("fail to get file name for audio")?;
             #[cfg(target_os = "linux")]
             log::info!("item: {item}");
 
@@ -336,10 +338,10 @@ impl Music {
         }
         if output.status.success() {
             log::warn!("{}", String::from_utf8_lossy(&output.stderr));
-            2
+            Ok(())
         } else {
             log::error!("{}", String::from_utf8_lossy(&output.stderr));
-            3
+            Err(String::from_utf8_lossy(&output.stderr).into())
         }
     }
 }
