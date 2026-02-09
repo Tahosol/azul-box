@@ -16,6 +16,8 @@
 
 **If you want to install binary please check out on my [codeberg](https://codeberg.org/Tahoso/azul-box/releases)**
 
+The Windows version is **highly** experimental. I do not have time to test it on Windows. If you are interested in fixing or maintaining the Windows version, pr are welcome.
+
 
 ## Feature
 
