@@ -212,8 +212,6 @@ impl Music {
 
         for i in files {
             let extension = format!(".{}", format_name);
-            log::info!("i: {i}");
-
             let filename = i;
 
             log::info!("filename: {filename}");
