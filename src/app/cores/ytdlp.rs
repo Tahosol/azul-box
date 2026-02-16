@@ -2,6 +2,7 @@ use crate::app::cores::depen_manager::{Depen, get_path};
 use crate::app::cores::lrclib::lrclib_fetch;
 use crate::app::cores::{kugou, musicbrainz};
 use std::error::Error;
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -107,51 +108,41 @@ pub struct Music {
     pub yt_dlp: PathBuf,
 }
 
-#[cfg(target_os = "windows")]
-fn get_name_from_title(html: &str) -> String {
-    use scraper::{Html, Selector};
-    let doc = Html::parse_document(&html);
-    let sel = Selector::parse("title").unwrap();
-    for i in doc.select(&sel) {
-        return i.inner_html().replace(" - YouTube", "");
-    }
-    String::new()
+use serde::Deserialize;
+#[derive(Debug, Deserialize)]
+struct InfoJson {
+    #[serde(rename = "_type")]
+    filetype: String,
+    title: String,
 }
-#[cfg(target_os = "windows")]
-fn get_all_songs_name_from_regex_playlist(html: &str) -> Vec<String> {
-    use regex::Regex;
-    let regex = Regex::new(r##""title":\{"runs":\[\{[^}]*\}\],"accessibility""##).unwrap();
-    let mut list_of_song = vec![];
-    for i in regex.find_iter(html) {
-        let a = i
-            .as_str()
-            .replace(r##""}],"accessibility""##, "")
-            .replace(r##""title":{"runs":[{"text":""##, "");
-        log::info!("{}", &a);
-        list_of_song.push(a);
-    }
 
-    list_of_song
-}
-#[cfg(target_os = "windows")]
-fn playlist_fix_url(url: &str) -> String {
-    if url.contains("&list") {
-        match url.split("&index=").nth(0) {
-            Some(removed_index) => {
-                let playlist_id = removed_index.split("&list=").last().unwrap();
-                return format!("https://www.youtube.com/playlist?list={}", playlist_id);
-            }
-            None => {
-                let playlist_id = url.split("&list=").last().unwrap();
-                return format!("https://www.youtube.com/playlist?list={}", playlist_id);
+pub fn get_all_music_title_and_playlist(
+    path: &Path,
+) -> Result<(Vec<String>, Option<String>), Box<dyn Error>> {
+    let mut titles: Vec<String> = vec![];
+    let mut playlist: Option<String> = None;
+    let reader = fs::read_dir(path)?;
+
+    for i in reader {
+        let item = i?.path();
+        if let Some(file) = item.to_str()
+            && file.contains(".info.json")
+        {
+            if let Ok(infojson) = serde_json::from_str::<InfoJson>(&fs::read_to_string(&item)?) {
+                if infojson.filetype == "playlist" {
+                    playlist = Some(infojson.title);
+                } else {
+                    titles.push(infojson.title);
+                }
+                fs::remove_file(item)?;
+            } else {
+                log::warn!("Failed to parse JSON for item: {:?}", item);
+                continue;
             }
         }
-    } else if url.contains("?list=") && url.contains("youtu.be") {
-        let playlist_id = url.split("?list=").last().unwrap();
-        return format!("https://www.youtube.com/playlist?list={}", playlist_id);
-    } else {
-        url.to_string()
     }
+
+    return Ok((titles, playlist));
 }
 
 impl Music {
@@ -198,6 +189,7 @@ impl Music {
             .arg("%(title)s.%(ext)s")
             .arg("--compat-options")
             .arg("no-live-chat")
+            .arg("--write-info-json")
             .current_dir(&self.directory);
 
         if self.lyrics {
@@ -216,77 +208,12 @@ impl Music {
         let log = String::from_utf8(output.stdout)?;
         log::info!("{}", log);
 
-        let play: Option<String>;
-        let files: Vec<String>;
-        #[cfg(target_os = "windows")]
-        {
-            if self.link.contains("list=") {
-                match get_html(&self.link) {
-                    Ok(html) => {
-                        log::info!("case 1 worked");
-                        play = Some(get_name_from_title(&html));
-                        files = get_all_songs_name_from_regex_playlist(&html);
-                    }
-                    Err(e) => {
-                        log::error!("Error case 1: {e}");
-                        play = None;
-                        files = vec![];
-                    }
-                }
-            } else {
-                match get_html(&self.link) {
-                    Ok(html) => {
-                        log::info!("case 2 worked");
-                        play = None;
-                        files = vec![get_name_from_title(&html)];
-                    }
-                    Err(e) => {
-                        log::error!("Error case 2: {e}");
-                        play = None;
-                        files = vec![];
-                    }
-                }
-            }
-        }
+        let (files, play) = get_all_music_title_and_playlist(Path::new(&self.directory))?;
 
-        #[cfg(target_os = "linux")]
-        {
-            const PREFIX: &str = "[download] Finished downloading playlist:";
-            let playlist_name: Vec<String> = log
-                .lines()
-                .filter_map(|line| line.strip_prefix(PREFIX).map(str::trim).to_owned())
-                .map(|l| l.to_string())
-                .collect();
-
-            play = playlist_name.first().cloned();
-
-            files = log
-                .lines()
-                .filter(|line| line.starts_with("[Metadata]"))
-                .map(|l| l.to_string())
-                .collect();
-        }
-
-        for i in files.into_iter() {
+        for i in files {
             let extension = format!(".{}", format_name);
             log::info!("i: {i}");
 
-            #[cfg(target_os = "linux")]
-            let item = i
-                .split("Adding metadata to \"")
-                .last()
-                .ok_or("fail to get file for audio")?;
-            #[cfg(target_os = "linux")]
-            let item = item[0..item.len() - 1].to_string();
-            #[cfg(target_os = "linux")]
-            let filename = item
-                .split(&extension)
-                .next()
-                .ok_or("fail to get file name for audio")?;
-            #[cfg(target_os = "linux")]
-            log::info!("item: {item}");
-
-            #[cfg(target_os = "windows")]
             let filename = i;
 
             log::info!("filename: {filename}");
@@ -344,11 +271,4 @@ impl Music {
             Err(String::from_utf8_lossy(&output.stderr).into())
         }
     }
-}
-#[cfg(target_os = "windows")]
-fn get_html(url: &str) -> Result<String, Box<dyn Error>> {
-    Ok(ureq::get(playlist_fix_url(url))
-        .call()?
-        .body_mut()
-        .read_to_string()?)
 }
