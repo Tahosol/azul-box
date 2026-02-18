@@ -220,7 +220,7 @@ impl eframe::App for MainApp {
                                 #[cfg(target_os = "windows")]
                                 {
                                     tokio::task::spawn(async move {
-                                        match Command::new("xdg-open").arg(log).spawn() {
+                                        match Command::new("explorer").arg(log).spawn() {
                                             Ok(_) => {
                                                 log::info!("open logs in file manager")
                                             }
