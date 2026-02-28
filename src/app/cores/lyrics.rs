@@ -44,7 +44,7 @@ pub fn work(
 
                     tagged_file.insert_tag(Tag::new(tag_type));
 
-                    tagged_file.primary_tag_mut().unwrap()
+                    tagged_file.primary_tag_mut().ok_or("Fail to open tag")?
                 }
             }
         };

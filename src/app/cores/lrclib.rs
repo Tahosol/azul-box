@@ -21,12 +21,15 @@ pub fn lrclib_fetch(opt: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
                 log::warn!("No tags found, creating a new tag of type `{tag_type:?}`");
                 tagged_file.insert_tag(Tag::new(tag_type));
 
-                tagged_file.primary_tag_mut().unwrap()
+                tagged_file.primary_tag_mut().ok_or("Fail to open tag")?
             }
         }
     };
-    let artist = tag.artist().unwrap();
-    let title = string_cleaner::clean_title_before_api_call(&tag.title().unwrap(), &artist);
+    let artist = tag.artist().ok_or("Fail to open tag title")?;
+    let title = string_cleaner::clean_title_before_api_call(
+        &tag.title().ok_or("Fail to open tag title")?,
+        &artist,
+    );
 
     let artist: String = form_urlencoded::byte_serialize(artist.as_bytes()).collect();
     let title: String = form_urlencoded::byte_serialize(title.as_bytes()).collect();

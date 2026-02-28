@@ -57,7 +57,7 @@ struct Asset {
 
 fn unzip(file_in: &Path) -> Result<(), Box<dyn Error>> {
     let file = fs::File::open(file_in)?;
-    let dir_out = file_in.ancestors().nth(1).unwrap();
+    let dir_out = file_in.ancestors().nth(1).ok_or("Fail to take file")?;
 
     let mut archive = zip::ZipArchive::new(file)?;
 

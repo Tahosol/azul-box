@@ -19,12 +19,15 @@ pub fn get(path: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
                 log::info!("No tags found, creating a new tag of type `{tag_type:?}`");
                 tagged_file.insert_tag(Tag::new(tag_type));
 
-                tagged_file.primary_tag_mut().unwrap()
+                tagged_file.primary_tag_mut().ok_or("Fail to open tag")?
             }
         }
     };
-    let artist = tag.artist().unwrap();
-    let title = string_cleaner::clean_title_before_api_call(&tag.title().unwrap(), &artist);
+    let artist = tag.artist().ok_or("Fail to open tag artist")?;
+    let title = string_cleaner::clean_title_before_api_call(
+        &tag.title().ok_or("Fail to open tag title")?,
+        &artist,
+    );
 
     let data = kugou_search(&title)?;
 
