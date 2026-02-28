@@ -26,14 +26,15 @@ pub fn work(opt: &Path, similarity_rate: i8) -> Result<(), Box<dyn Error>> {
                 log::warn!("No tags found, creating a new tag of type `{tag_type:?}`");
                 tagged_file.insert_tag(Tag::new(tag_type));
 
-                tagged_file.primary_tag_mut().unwrap()
+                tagged_file.primary_tag_mut().ok_or("Fail to open tag")?
             }
         }
     };
     use url::form_urlencoded;
 
-    let artist = tag.artist().unwrap();
-    let title = string_cleaner::clean_title_before_api_call(&tag.title().unwrap(), &artist);
+    let artist = tag.artist().ok_or("Fail artist tag")?;
+    let title =
+        string_cleaner::clean_title_before_api_call(&tag.title().ok_or("Fail title tag")?, &artist);
 
     let artist: String = form_urlencoded::byte_serialize(artist.as_bytes()).collect();
     let title: String = form_urlencoded::byte_serialize(title.as_bytes()).collect();
@@ -97,8 +98,11 @@ fn fetch_musicbrainzapi(
             if !releases.is_empty() {
                 let release_id = &releases[0].id;
                 if let Some(date) = &releases[0].date {
-                    let years = &date.split("-").next().unwrap();
-                    let year: u16 = years.parse::<u16>().unwrap();
+                    let years = &date
+                        .split("-")
+                        .next()
+                        .ok_or("Fail to get years from release")?;
+                    let year: u16 = years.parse::<u16>()?;
                     tag.set_date(Timestamp {
                         year,
                         hour: None,
@@ -144,12 +148,10 @@ fn fetch_musicbrainzapi(
                         .call()?;
                     let data: Vec<u8> = img_req.into_body().read_to_vec()?;
 
-                    let picture = Picture::new_unchecked(
-                        PictureType::CoverFront,
-                        Some(MimeType::Jpeg),
-                        None,
-                        data,
-                    );
+                    let picture = Picture::unchecked(data)
+                        .mime_type(MimeType::Jpeg)
+                        .pic_type(PictureType::CoverFront)
+                        .build();
                     log::info!("Cover Image Found!");
                     if tag.picture_count() > 0 {
                         tag.remove_picture(0);
