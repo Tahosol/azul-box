@@ -3,6 +3,7 @@ use lofty::picture::{MimeType, Picture, PictureType};
 use lofty::prelude::*;
 use lofty::probe::Probe;
 use lofty::tag::Tag;
+use lofty::tag::items::Timestamp;
 
 use std::error::Error;
 use std::path::Path;
@@ -97,8 +98,15 @@ fn fetch_musicbrainzapi(
                 let release_id = &releases[0].id;
                 if let Some(date) = &releases[0].date {
                     let years = &date.split("-").next().unwrap();
-                    let year: u32 = years.parse::<u32>().unwrap();
-                    tag.set_year(year);
+                    let year: u16 = years.parse::<u16>().unwrap();
+                    tag.set_date(Timestamp {
+                        year,
+                        hour: None,
+                        day: None,
+                        month: None,
+                        second: None,
+                        minute: None,
+                    });
                     tag.insert_text(ItemKey::ReleaseDate, date.clone());
                 }
                 tag.set_album(releases[0].title.clone());
