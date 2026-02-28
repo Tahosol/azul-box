@@ -64,6 +64,19 @@
   </branding>
 
   <releases>
+
+  <release version="v0.2.7" date="2026-2-28">
+    <url
+                type="details"
+            >https://codeberg.org/Tahoso/azul-box/releases/tag/v0.2.7</url>
+    <description>
+        <ul>
+          <li>reduce crash</li>
+          <li>new way to parse data for yt-dlp</li>
+        </ul>
+    </description>
+    </release>
+
   <release version="v0.2.6" date="2026-2-7">
     <url
                 type="details"
