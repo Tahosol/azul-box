@@ -9,7 +9,15 @@ use std::process::Command;
 use std::sync::atomic::{AtomicI8, Ordering};
 use std::sync::{Arc, Mutex};
 
-pub struct VideoConvert {
+static IMAGE_FORMAT: &[&str; 8] = &["png", "bmp", "tif", "gif", "webp", "heic", "jpg", "avif"];
+static AUDIO_FORMAT: &[&str; 9] = &[
+    "mp3", "wav", "aac", "flac", "ogg", "m4a", "wma", "opus", "aiff",
+];
+static VIDEO_FORMAT: &[&str; 17] = &[
+    "mp4", "avi", "mkv", "mov", "wmv", "flv", "webm", "mpg", "3gp", "ogv", "m4v", "asf", "vob",
+    "ts", "ogg", "webp", "gif",
+];
+pub struct Ffmpeg {
     pub out_directory: String,
     pub status: Arc<AtomicI8>,
     pub format_in: String,
@@ -18,9 +26,9 @@ pub struct VideoConvert {
     error_message: Arc<Mutex<String>>,
 }
 
-impl Default for VideoConvert {
+impl Default for Ffmpeg {
     fn default() -> Self {
-        let default_directory = dirs::video_dir()
+        let default_directory = dirs::picture_dir()
             .map(|path| path.to_string_lossy().into_owned())
             .unwrap_or_else(|| String::from(""));
         Self {
@@ -34,12 +42,12 @@ impl Default for VideoConvert {
     }
 }
 
-impl VideoConvert {
+impl Ffmpeg {
     fn start_download_status(&mut self) {
         self.status.store(1, Ordering::Relaxed);
     }
     fn format_out_button(&mut self, ui: &mut egui::Ui, name: &str) {
-        if self.format_out == name && self.format_in != name {
+        if self.format_out == name {
             if ui
                 .add(egui::Button::new(
                     egui::RichText::new(name).color(Color32::LIGHT_BLUE),
@@ -48,7 +56,7 @@ impl VideoConvert {
             {
                 self.format_out = name.to_string();
             };
-        } else if self.format_in != name {
+        } else {
             if ui.button(name).clicked() {
                 self.format_out = name.to_string();
             };
@@ -59,23 +67,21 @@ impl VideoConvert {
             ui.horizontal_wrapped(|ui| {
                 ui.label("Output: ");
                 ui.menu_button(self.format_out.clone(), |ui| {
-                    self.format_out_button(ui, "mp4");
-                    self.format_out_button(ui, "avi");
-                    self.format_out_button(ui, "mkv");
-                    self.format_out_button(ui, "mov");
-                    self.format_out_button(ui, "wmv");
-                    self.format_out_button(ui, "flv");
-                    self.format_out_button(ui, "webm");
-                    self.format_out_button(ui, "mpg");
-                    self.format_out_button(ui, "3gp");
-                    self.format_out_button(ui, "ogv");
-                    self.format_out_button(ui, "m4v");
-                    self.format_out_button(ui, "asf");
-                    self.format_out_button(ui, "vob");
-                    self.format_out_button(ui, "ts");
-                    self.format_out_button(ui, "f4v");
-                    self.format_out_button(ui, "dv");
-                    self.format_out_button(ui, "gif");
+                    if AUDIO_FORMAT.contains(&self.format_in.as_str()) {
+                        for format in AUDIO_FORMAT {
+                            self.format_out_button(ui, format);
+                        }
+                    } else if VIDEO_FORMAT.contains(&self.format_in.as_str()) {
+                        for format in VIDEO_FORMAT {
+                            self.format_out_button(ui, format);
+                        }
+                    } else if IMAGE_FORMAT.contains(&self.format_in.as_str()) {
+                        for format in IMAGE_FORMAT {
+                            self.format_out_button(ui, format);
+                        }
+                    } else {
+                        self.format_out_button(ui, "Nothing");
+                    }
                 });
             });
             ui.add_space(10.0);
@@ -92,32 +98,36 @@ impl VideoConvert {
         });
         ui.separator();
         ui.vertical_centered(|ui| {
-            let link_label = ui.label("Video: ");
+            let link_label = ui.label("Media: ");
             if ui
                 .text_edit_singleline(&mut self.input_file)
                 .labelled_by(link_label.id)
                 .clicked()
             {
+                let mut filter = Vec::with_capacity(
+                    AUDIO_FORMAT.len() + VIDEO_FORMAT.len() + IMAGE_FORMAT.len(),
+                );
+                filter.extend_from_slice(AUDIO_FORMAT);
+                filter.extend_from_slice(VIDEO_FORMAT);
+                filter.extend_from_slice(IMAGE_FORMAT);
                 let path = DialogBuilder::file()
                     .set_location(&self.out_directory)
-                    .add_filter(
-                        "Video",
-                        [
-                            "mp4", "avi", "mkv", "mov", "wmv", "flv", "webm", "mpeg", "mpg", "3gp",
-                            "ogv", "m4v", "asf", "vob", "ts", "f4v", "dv",
-                        ],
-                    )
+                    .add_filter("Media", filter)
                     .open_single_file()
                     .show()
                     .unwrap();
 
                 if let Some(p) = path {
                     self.input_file = p.to_string_lossy().into_owned();
+                    if let Some(out_path) = p.parent().and_then(|x| x.to_str()) {
+                        self.out_directory = out_path.to_string();
+                    }
                     let input = self.input_file.split(".").last().unwrap();
                     self.format_in = input.to_string();
                 } else {
                     log::info!("No file selected.");
                 }
+                self.format_out = "None".to_string();
             }
 
             let dir_label = ui.label("Output Directory: ");
@@ -151,7 +161,7 @@ impl VideoConvert {
                     let error_message_clone = Arc::clone(&self.error_message);
 
                     tokio::task::spawn(async move {
-                        match download(input, directory, format_out, ffmpeg) {
+                        match ffmpeg_cli(input, directory, format_out, ffmpeg) {
                             Ok(_) => {
                                 progress.store(2, Ordering::Relaxed);
                                 let _ = done_sound();
@@ -197,7 +207,7 @@ impl VideoConvert {
     }
 }
 
-fn download(
+fn ffmpeg_cli(
     input: String,
     directory: String,
     format_out: String,
@@ -207,21 +217,25 @@ fn download(
         return Err("No input".into());
     }
     let filename = Path::new(&input)
-        .file_name()
-        .expect("Fail to unwrap filename in img_convert")
-        .to_str()
-        .ok_or("Fail to convert OSstr to &str")?;
+        .file_stem()
+        .and_then(|stem| stem.to_str())
+        .ok_or("Failed to extract filename stem")?;
+    let filename = format!("{}-azul-ffmpeg", filename);
 
     let output = match ffmpeg {
         Some(f) => Command::new(f)
             .arg("-i")
             .arg(&input)
+            .arg("-q:v")
+            .arg("100")
             .arg(format!("{}.{}", filename, format_out))
             .current_dir(directory)
             .output()?,
         None => Command::new("ffmpeg")
             .arg("-i")
             .arg(&input)
+            .arg("-q:v")
+            .arg("100")
             .arg(format!("{}.{}", filename, format_out))
             .current_dir(directory)
             .output()?,

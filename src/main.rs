@@ -54,8 +54,7 @@ struct MainApp {
     music_download: app::music_dl::MusicDownload,
     video_download: app::video_dl::VideoDownload,
     pinterest_download: app::pinterest::PinterstDownload,
-    image_convert: app::img_convert::ImgConvert,
-    video_convert: app::video_convert::VideoConvert,
+    ffmpeg_ui: app::ffmpeg::Ffmpeg,
     run_on_start: bool,
     yt: bool,
     yt_version: String,
@@ -88,8 +87,7 @@ impl Default for MainApp {
             music_download: app::music_dl::MusicDownload::default(),
             video_download: app::video_dl::VideoDownload::default(),
             pinterest_download: app::pinterest::PinterstDownload::default(),
-            image_convert: app::img_convert::ImgConvert::default(),
-            video_convert: app::video_convert::VideoConvert::default(),
+            ffmpeg_ui: app::ffmpeg::Ffmpeg::default(),
             run_on_start: false,
             yt_version,
             yt: true,
@@ -361,19 +359,11 @@ impl eframe::App for MainApp {
                     });
             }
             if self.ffmpeg {
-                //Img convert
-                egui::Window::new("Image converter")
+                egui::Window::new("FFmpeg")
                     .default_open(false)
                     .resizable(false)
                     .show(ctx, |ui| {
-                        self.image_convert.ui(ui, &self.app_data);
-                    });
-                //Video convert
-                egui::Window::new("Video converter")
-                    .default_open(false)
-                    .resizable(false)
-                    .show(ctx, |ui| {
-                        self.video_convert.ui(ui, &self.app_data);
+                        self.ffmpeg_ui.ui(ui, &self.app_data);
                     });
             }
         } else {
