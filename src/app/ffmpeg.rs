@@ -9,7 +9,9 @@ use std::process::Command;
 use std::sync::atomic::{AtomicI8, Ordering};
 use std::sync::{Arc, Mutex};
 
-static IMAGE_FORMAT: &[&str; 8] = &["png", "bmp", "tif", "gif", "webp", "heic", "jpg", "avif"];
+static IMAGE_FORMAT: &[&str; 9] = &[
+    "png", "bmp", "tif", "gif", "webp", "heic", "jpg", "avif", "jpeg",
+];
 static AUDIO_FORMAT: &[&str; 9] = &[
     "mp3", "wav", "aac", "flac", "ogg", "m4a", "wma", "opus", "aiff",
 ];
@@ -23,20 +25,19 @@ pub struct Ffmpeg {
     pub format_in: String,
     pub format_out: String,
     pub input_file: String,
+    compression: FFmpegCompression,
     error_message: Arc<Mutex<String>>,
 }
 
 impl Default for Ffmpeg {
     fn default() -> Self {
-        let default_directory = dirs::picture_dir()
-            .map(|path| path.to_string_lossy().into_owned())
-            .unwrap_or_else(|| String::from(""));
         Self {
             input_file: String::new(),
-            out_directory: default_directory,
+            out_directory: "".to_string(),
             status: Arc::new(AtomicI8::new(0)), // 0 = nothing / 1 = pending / 2 = Done / 3 = Fail
             format_in: String::new(),
             format_out: String::from("None"),
+            compression: FFmpegCompression::None,
             error_message: Arc::new(Mutex::new(String::new())),
         }
     }
@@ -45,6 +46,30 @@ impl Default for Ffmpeg {
 impl Ffmpeg {
     fn start_download_status(&mut self) {
         self.status.store(1, Ordering::Relaxed);
+    }
+    fn toggle_compression(
+        &mut self,
+        ui: &mut egui::Ui,
+        atoms: &str,
+        compression: FFmpegCompression,
+    ) {
+        match self.compression {
+            FFmpegCompression::PngCompression(_) => {
+                if ui
+                    .add(egui::Button::new(
+                        egui::RichText::new(atoms).color(Color32::LIGHT_BLUE),
+                    ))
+                    .clicked()
+                {
+                    self.compression = FFmpegCompression::None;
+                };
+            }
+            _ => {
+                if ui.button(atoms).clicked() {
+                    self.compression = compression;
+                }
+            }
+        }
     }
     fn format_out_button(&mut self, ui: &mut egui::Ui, name: &str) {
         if self.format_out == name {
@@ -87,14 +112,61 @@ impl Ffmpeg {
             ui.add_space(10.0);
             ui.separator();
             ui.add_space(10.0);
-            ui.label("Status: ");
-            if self.status.load(Ordering::Relaxed) == 1 {
-                ui.spinner();
-            } else if self.status.load(Ordering::Relaxed) == 2 {
-                ui.colored_label(Color32::LIGHT_GREEN, "Done!");
-            } else if self.status.load(Ordering::Relaxed) == 3 {
-                ui.colored_label(Color32::LIGHT_RED, "Fail!");
-            }
+            ui.menu_button("Compression", |ui| {
+                if self.format_in == "png" && self.format_out == "png" {
+                    self.toggle_compression(
+                        ui,
+                        "Png compression",
+                        FFmpegCompression::PngCompression(100),
+                    );
+                    if let FFmpegCompression::PngCompression(value) = &mut self.compression {
+                        ui.add(
+                            egui::widgets::Slider::new(value, 0..=100).text("Percentage quality: "),
+                        )
+                        .on_hover_text(
+                            "percentage of compression from 0% to 100%, more is less file size",
+                        );
+                    }
+                } else if self.format_out == "jpg" || self.format_out == "jpeg" {
+                    self.toggle_compression(
+                        ui,
+                        "Jpg compression",
+                        FFmpegCompression::JpgCompression(3),
+                    );
+                    if let FFmpegCompression::JpgCompression(value) = &mut self.compression {
+                        ui.add(
+                            egui::widgets::Slider::new(value, 1..=100).text("Compression level: "),
+                        )
+                        .on_hover_text("Bigger is more compression");
+                    }
+                } else if VIDEO_FORMAT.contains(&self.format_out.as_ref()) {
+                    self.toggle_compression(
+                        ui,
+                        "libx264 compression",
+                        FFmpegCompression::Libx264(23),
+                    );
+                    if let FFmpegCompression::Libx264(value) = &mut self.compression {
+                        ui.add(
+                            egui::widgets::Slider::new(value, 1..=100).text("Compression level: "),
+                        )
+                        .on_hover_text("Bigger is more compression");
+                    }
+                } else if AUDIO_FORMAT.contains(&&self.format_out.as_ref()) {
+                    self.toggle_compression(
+                        ui,
+                        "bitrate compression",
+                        FFmpegCompression::AudioBitrate(128),
+                    );
+                    if let FFmpegCompression::AudioBitrate(value) = &mut self.compression {
+                        ui.add(
+                            egui::widgets::Slider::new(value, 16..=128)
+                                .text("bitrate: ")
+                                .step_by(16.0),
+                        )
+                        .on_hover_text("smaller is lower quality and more compression");
+                    }
+                }
+            });
         });
         ui.separator();
         ui.vertical_centered(|ui| {
@@ -124,10 +196,10 @@ impl Ffmpeg {
                     }
                     let input = self.input_file.split(".").last().unwrap();
                     self.format_in = input.to_string();
+                    self.format_out = input.to_string();
                 } else {
                     log::info!("No file selected.");
                 }
-                self.format_out = "None".to_string();
             }
 
             let dir_label = ui.label("Output Directory: ");
@@ -158,10 +230,11 @@ impl Ffmpeg {
                     let format_out = self.format_out.clone();
                     let progress = self.status.clone();
                     let ffmpeg = depen.ffmpeg.clone();
+                    let compression = self.compression.clone();
                     let error_message_clone = Arc::clone(&self.error_message);
 
                     tokio::task::spawn(async move {
-                        match ffmpeg_cli(input, directory, format_out, ffmpeg) {
+                        match ffmpeg_cli(input, directory, format_out, ffmpeg, compression) {
                             Ok(_) => {
                                 progress.store(2, Ordering::Relaxed);
                                 let _ = done_sound();
@@ -190,7 +263,16 @@ impl Ffmpeg {
                     }
                 }
             }
-            if self.status.load(Ordering::Relaxed) == 3 {
+            if self.status.load(Ordering::Relaxed) == 1 {
+                ui.spacing();
+                ui.separator();
+                ui.horizontal_wrapped(|ui| {
+                    ui.spinner();
+                    ui.label(
+                        egui::RichText::new("This may take awhile").color(Color32::LIGHT_GRAY),
+                    );
+                });
+            } else if self.status.load(Ordering::Relaxed) == 3 {
                 ui.spacing();
                 ui.separator();
                 egui::ScrollArea::vertical()
@@ -202,7 +284,9 @@ impl Ffmpeg {
                                 .size(16.0),
                         );
                     });
-            }
+            } else if self.status.load(Ordering::Relaxed) == 2 {
+                ui.colored_label(Color32::LIGHT_GREEN, "Done!");
+            };
         });
     }
 }
@@ -212,6 +296,7 @@ fn ffmpeg_cli(
     directory: String,
     format_out: String,
     ffmpeg: Option<PathBuf>,
+    compression: FFmpegCompression,
 ) -> Result<(), Box<dyn Error>> {
     if input.is_empty() {
         return Err("No input".into());
@@ -222,31 +307,52 @@ fn ffmpeg_cli(
         .ok_or("Failed to extract filename stem")?;
     let filename = format!("{}-azul-ffmpeg", filename);
 
-    let output = match ffmpeg {
-        Some(f) => Command::new(f)
-            .arg("-i")
-            .arg(&input)
-            .arg("-q:v")
-            .arg("100")
-            .arg(format!("{}.{}", filename, format_out))
-            .current_dir(directory)
-            .output()?,
-        None => Command::new("ffmpeg")
-            .arg("-i")
-            .arg(&input)
-            .arg("-q:v")
-            .arg("100")
-            .arg(format!("{}.{}", filename, format_out))
-            .current_dir(directory)
-            .output()?,
+    let ffmpeg_bin = match ffmpeg {
+        Some(bin) => bin,
+        None => "ffmpeg".into(),
     };
 
-    let status = output.status;
+    let mut cli_build = Command::new(ffmpeg_bin);
+    cli_build.arg("-i").arg(&input).arg("-q:v").arg("100");
 
-    if status.success() {
+    match compression {
+        FFmpegCompression::Libx264(cfg) => {
+            cli_build
+                .arg("-vcodec")
+                .arg("libx264")
+                .arg("-crf")
+                .arg(format!("{}", cfg));
+        }
+        FFmpegCompression::AudioBitrate(cfg) => {
+            cli_build.arg("-b:a").arg(format!("{}k", cfg));
+        }
+        FFmpegCompression::JpgCompression(cfg) => {
+            cli_build.arg("-q:v").arg(format!("{}", cfg));
+        }
+        FFmpegCompression::PngCompression(cfg) => {
+            cli_build.arg("-compression_level").arg(format!("{}", cfg));
+        }
+        FFmpegCompression::None => {}
+    }
+
+    cli_build
+        .arg(format!("{}.{}", filename, format_out))
+        .current_dir(directory);
+    let output = cli_build.output()?;
+
+    if output.status.success() {
         Ok(())
     } else {
         log::error!("{}", String::from_utf8_lossy(&output.stderr));
         Err(String::from_utf8_lossy(&output.stderr).into())
     }
+}
+
+#[derive(Debug, Clone)]
+enum FFmpegCompression {
+    Libx264(u8),
+    JpgCompression(u8),
+    PngCompression(u8),
+    AudioBitrate(u8),
+    None,
 }

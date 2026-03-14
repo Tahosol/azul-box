@@ -88,7 +88,7 @@ impl Default for MainApp {
             run_on_start: false,
             yt_version,
             yt: true,
-            ffmpeg: false,
+            ffmpeg: true,
             app_data,
             is_install_depen: Arc::new(AtomicBool::new(false)),
             log_path,
