@@ -311,11 +311,6 @@ impl eframe::App for MainApp {
                     ));
                     ui.separator();
                     ui.add(egui::Checkbox::new(
-                        &mut self.pin,
-                        egui::RichText::new("pin-dl").size(17.0),
-                    ));
-                    ui.separator();
-                    ui.add(egui::Checkbox::new(
                         &mut self.ffmpeg,
                         egui::RichText::new("ffmpeg").size(17.0),
                     ));
