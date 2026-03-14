@@ -53,7 +53,6 @@ async fn main() -> eframe::Result {
 struct MainApp {
     music_download: app::music_dl::MusicDownload,
     video_download: app::video_dl::VideoDownload,
-    pinterest_download: app::pinterest::PinterstDownload,
     ffmpeg_ui: app::ffmpeg::Ffmpeg,
     run_on_start: bool,
     yt: bool,
@@ -86,7 +85,6 @@ impl Default for MainApp {
         Self {
             music_download: app::music_dl::MusicDownload::default(),
             video_download: app::video_dl::VideoDownload::default(),
-            pinterest_download: app::pinterest::PinterstDownload::default(),
             ffmpeg_ui: app::ffmpeg::Ffmpeg::default(),
             run_on_start: false,
             yt_version,
@@ -347,15 +345,6 @@ impl eframe::App for MainApp {
                     .resizable(false)
                     .show(ctx, |ui| {
                         self.video_download.ui(ui, &self.app_data);
-                    });
-            }
-            if self.pin {
-                //Pinterest
-                egui::Window::new("Pinterest-dl")
-                    .default_open(false)
-                    .resizable(false)
-                    .show(ctx, |ui| {
-                        self.pinterest_download.ui(ui, &self.app_data);
                     });
             }
             if self.ffmpeg {
