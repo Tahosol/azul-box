@@ -20,6 +20,26 @@ pub fn file_finder(directory: &str, filename: &str, matchs: &[&str]) -> Option<P
     }
     None
 }
+pub fn get_filename_not_exact(directory: &str, filename: &str) -> Option<String> {
+    let start = std::time::Instant::now();
+    let elements = fs::read_dir(&directory).ok()?;
+
+    for item in elements {
+        let path = item.ok()?.path();
+        if path.is_file() {
+            if let Some(name) = path.file_stem().and_then(|f| f.to_str()) {
+                if textdistance::nstr::cosine(name, filename) > 0.95 {
+                    let duration = start.elapsed();
+                    println!("get_filename_not_exact took: {:?}", duration);
+                    return Some(name.to_string());
+                }
+            }
+        }
+    }
+    let duration = start.elapsed();
+    println!("get_filename_not_exact took: {:?}", duration);
+    None
+}
 
 pub fn file_finder_no_name(directory: &str, matchs: &[&str]) -> Option<PathBuf> {
     let elements = fs::read_dir(&directory).ok()?;

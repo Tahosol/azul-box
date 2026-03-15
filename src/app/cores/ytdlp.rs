@@ -1,4 +1,5 @@
 use crate::app::cores::depen_manager::{Depen, get_path};
+use crate::app::cores::files::get_filename_not_exact;
 use crate::app::cores::lrclib::lrclib_fetch;
 use crate::app::cores::{kugou, musicbrainz};
 use std::error::Error;
@@ -208,11 +209,15 @@ impl Music {
         let log = String::from_utf8(output.stdout)?;
         log::info!("{}", log);
 
-        let (files, play) = get_all_music_title_and_playlist(Path::new(&self.directory))?;
+        let (filenames_from_json_info, play) =
+            get_all_music_title_and_playlist(Path::new(&self.directory))?;
 
-        for i in files {
+        for i in filenames_from_json_info {
             let extension = format!(".{}", format_name);
-            let filename = i;
+            let filename_errorable = i;
+
+            let filename = get_filename_not_exact(&self.directory, &filename_errorable)
+                .ok_or("Fail to get filename")?;
 
             log::info!("filename: {filename}");
 
