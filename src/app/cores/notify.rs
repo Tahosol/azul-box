@@ -4,28 +4,31 @@ use rodio::Decoder;
 
 pub fn done_sound() -> Result<(), Box<dyn Error>> {
     let source = include_bytes!("../../../assets/sounds/completion-success.oga");
-    let stream_handle = rodio::OutputStreamBuilder::open_default_stream()?;
-    let sink = rodio::Sink::connect_new(stream_handle.mixer());
+    let mut handle = rodio::DeviceSinkBuilder::open_default_sink()?;
+    handle.log_on_drop(false);
+    let player = rodio::Player::connect_new(&handle.mixer());
     let source = Decoder::new(std::io::Cursor::new(source)).unwrap();
-    sink.append(source);
-    sink.sleep_until_end();
+    player.append(source);
+    player.sleep_until_end();
     Ok(())
 }
 pub fn fail_sound() -> Result<(), Box<dyn Error>> {
     let source = include_bytes!("../../../assets/sounds/completion-fail.oga");
-    let stream_handle = rodio::OutputStreamBuilder::open_default_stream()?;
-    let sink = rodio::Sink::connect_new(stream_handle.mixer());
+    let mut handle = rodio::DeviceSinkBuilder::open_default_sink()?;
+    handle.log_on_drop(false);
+    let player = rodio::Player::connect_new(&handle.mixer());
     let source = Decoder::new(std::io::Cursor::new(source)).unwrap();
-    sink.append(source);
-    sink.sleep_until_end();
+    player.append(source);
+    player.sleep_until_end();
     Ok(())
 }
 pub fn button_sound() -> Result<(), Box<dyn Error>> {
     let source = include_bytes!("../../../assets/sounds/button-pressed-modifier.oga");
-    let stream_handle = rodio::OutputStreamBuilder::open_default_stream()?;
-    let sink = rodio::Sink::connect_new(stream_handle.mixer());
+    let mut handle = rodio::DeviceSinkBuilder::open_default_sink()?;
+    handle.log_on_drop(false);
+    let player = rodio::Player::connect_new(&handle.mixer());
     let source = Decoder::new(std::io::Cursor::new(source)).unwrap();
-    sink.append(source);
-    sink.sleep_until_end();
+    player.append(source);
+    player.sleep_until_end();
     Ok(())
 }
