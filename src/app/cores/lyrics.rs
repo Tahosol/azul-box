@@ -1,5 +1,6 @@
 use crate::app::cores::files::file_finder;
 
+use lofty::tag::TagType;
 use log::{error, info};
 use std::error::Error;
 use std::fs;
@@ -48,8 +49,15 @@ pub fn work(
                 }
             }
         };
-        tag.insert_text(ItemKey::Lyrics, lyrics);
+
+        if tag.tag_type() == TagType::Id3v2 {
+            tag.insert_text(ItemKey::UnsyncLyrics, lyrics);
+        } else {
+            tag.insert_text(ItemKey::Lyrics, lyrics);
+        }
         tag.save_to_path(music_file, WriteOptions::default())?;
+
+
 
         info!("Lyrics successfully saved to the music file.");
         fs::remove_file(&lyrics_file)?;

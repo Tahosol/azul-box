@@ -2,7 +2,7 @@ use std::error::Error;
 use std::path::Path;
 use url::form_urlencoded;
 
-use lofty::{self, config::WriteOptions, prelude::*, probe::Probe, tag::Tag};
+use lofty::{self, config::WriteOptions, prelude::*, probe::Probe, tag::{Tag, TagType}};
 use serde::Deserialize;
 
 use crate::app::cores::{string_cleaner, translate::translate};
@@ -43,7 +43,11 @@ pub fn lrclib_fetch(opt: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
         log::info!("Lyrics Found From lrclib");
         let lyric_final = translate(lang, &ly)?;
         if !lyric_final.is_empty() {
-            tag.insert_text(ItemKey::Lyrics, lyric_final);
+            if tag.tag_type() == TagType::Id3v2 {
+                tag.insert_text(ItemKey::UnsyncLyrics, lyric_final);
+            } else {
+                tag.insert_text(ItemKey::Lyrics, lyric_final);
+            }
             tag.save_to_path(opt, WriteOptions::default())?;
         }
     }

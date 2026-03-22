@@ -1,5 +1,6 @@
-use crate::app::cores::{string_cleaner, translate::translate};
+use crate::app::cores::{ translate::translate};
 use base64::prelude::*;
+use lofty::tag::TagType;
 use lofty::{self, config::WriteOptions, prelude::*, probe::Probe, tag::Tag};
 use serde::Deserialize;
 use std::error::Error;
@@ -23,11 +24,7 @@ pub fn get(path: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
             }
         }
     };
-    let artist = tag.artist().ok_or("Fail to open tag artist")?;
-    let title = string_cleaner::clean_title_before_api_call(
-        &tag.title().ok_or("Fail to open tag title")?,
-        &artist,
-    );
+    let title = &tag.title().ok_or("Fail to open tag title")?;
 
     let data = kugou_search(&title)?;
 
@@ -35,7 +32,11 @@ pub fn get(path: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
         if let Some(best_match) = info.first() {
             let lyrics = kugou_get_lyrics(&best_match.hash, lang)?;
             if !lyrics.is_empty() {
-                tag.insert_text(ItemKey::Lyrics, lyrics);
+                if tag.tag_type() == TagType::Id3v2 {
+                    tag.insert_text(ItemKey::UnsyncLyrics, lyrics);
+                } else {
+                    tag.insert_text(ItemKey::Lyrics, lyrics);
+                }
                 tag.save_to_path(path, WriteOptions::default())?;
             }
         }
