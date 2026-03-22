@@ -20,12 +20,18 @@ lofty = "0.23.3"
 log = "0.4.29"
 native-dialog = "0.9.4"
 regex = "1.12.3"
-rodio = "0.22.2"
-serde = { version = "1.0.228", features = ["derive"] }
+rodio = {version ="0.22.2", default-features = false, features = ["vorbis","playback"] }
+serde = { version = "1.0.228", default-features = false, features = ["derive"] }
 serde_json = "1.0.149"
 textdistance = "1.1.1"
 tokio = { version = "1.50.0", features = ["rt", "macros", "rt-multi-thread"] }
 toml = "1.0.7"
 ureq = { version = "3.3.0", features = ["json"] }
 url = "2.5.8"
-zip = "8.3.1"
+zip = {version = "8.3.1", default-features = false, features = ["bzip2","deflate"] }
+
+[profile.release]
+strip = true
+opt-level = "z"
+lto = true
+codegen-units = 1
