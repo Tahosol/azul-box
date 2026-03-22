@@ -10,10 +10,7 @@ use std::{
     sync::{Arc, atomic::AtomicBool},
 };
 
-use eframe::{
-    egui::Color32,
-    epaint::text::{FontInsert, InsertFontFamily},
-};
+use eframe::egui::Color32;
 use ftail::Ftail;
 use log::LevelFilter;
 
