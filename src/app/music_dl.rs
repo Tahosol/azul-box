@@ -207,10 +207,9 @@ impl MusicDownload {
                             .set_location(&self.out_directory)
                             .add_filter("cookies.txt", ["txt"])
                             .open_single_file()
-                            .show()
-                            .unwrap();
+                            .show();
 
-                        if let Some(p) = path {
+                        if let Ok(pa) = path && let Some(p) = pa {
                             self.cookies = Some(p.to_string_lossy().into_owned());
                         } else {
                             log::info!("No file was selected.");
@@ -364,10 +363,9 @@ impl MusicDownload {
                 let path = DialogBuilder::file()
                     .set_location(&self.out_directory)
                     .open_single_dir()
-                    .show()
-                    .unwrap();
+                    .show();
 
-                if let Some(p) = path {
+                if let Ok(pa) = path && let Some(p) = pa {
                     self.out_directory = p.to_string_lossy().into_owned();
                 } else {
                     log::info!("No file selected.");

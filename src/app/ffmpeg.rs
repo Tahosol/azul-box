@@ -186,10 +186,9 @@ impl Ffmpeg {
                     .set_location(&self.out_directory)
                     .add_filter("Media", filter)
                     .open_single_file()
-                    .show()
-                    .unwrap();
+                    .show();
 
-                if let Some(p) = path {
+                if let Ok(pa) = path && let Some(p) = pa {
                     self.input_file = p.to_string_lossy().into_owned();
                     if let Some(out_path) = p.parent().and_then(|x| x.to_str()) {
                         self.out_directory = out_path.to_string();
@@ -211,10 +210,9 @@ impl Ffmpeg {
                 let path = DialogBuilder::file()
                     .set_location(&self.out_directory)
                     .open_single_dir()
-                    .show()
-                    .unwrap();
+                    .show();
 
-                if let Some(p) = path {
+                if let Ok(pa) = path && let Some(p) = pa {
                     self.out_directory = p.to_string_lossy().into_owned();
                 } else {
                     log::info!("No file selected.");
