@@ -17,6 +17,8 @@ pub struct Depen {
     pub deno: PathBuf,
     pub version: PathBuf,
     pub ffmpeg: Option<PathBuf>,
+    pub deno_zip: PathBuf,
+    pub ffmpeg_zip: Option<PathBuf>,
 }
 
 pub fn get_path() -> Depen {
@@ -26,9 +28,14 @@ pub fn get_path() -> Depen {
             app_data: data.clone(),
             #[cfg(target_arch = "aarch64")]
             yt_dlp: data.join("yt-dlp_linux_aarch64"),
+            #[cfg(target_arch = "aarch64")]
+            deno_zip: data.join("deno-aarch64-unknown-linux-gnu.zip"),
             #[cfg(target_arch = "x86_64")]
             yt_dlp: data.join("yt-dlp_linux"),
+            #[cfg(target_arch = "x86_64")]
+            deno_zip: data.join("deno-x86_64-unknown-linux-gnu.zip"),
             deno: data.join("deno"),
+            ffmpeg_zip: None,
             version: data.join("version.json"),
             ffmpeg: None,
         }
@@ -39,6 +46,8 @@ pub fn get_path() -> Depen {
             deno: data.join("deno.exe"),
             version: data.join("version.json"),
             ffmpeg: Some(data.join("ffmpeg.exe")),
+            ffmpeg_zip: Some(data.join("ffmpeg-master-latest-win64-gpl.zip")),
+            deno_zip: data.join("deno-x86_64-pc-windows-msvc.zip"),
         }
     }
 }

@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 mod app;
 pub const USERAGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36";
+use std::path::Path;
 use std::process::Command;
 
 use std::{
@@ -9,7 +10,10 @@ use std::{
     sync::{Arc, atomic::AtomicBool},
 };
 
-use eframe::egui::Color32;
+use eframe::{
+    egui::Color32,
+    epaint::text::{FontInsert, InsertFontFamily},
+};
 use ftail::Ftail;
 use log::LevelFilter;
 
@@ -20,7 +24,7 @@ use crate::app::cores::{
     notify::fail_sound,
     ytdlp,
 };
-use eframe::egui::{self, global_theme_preference_buttons};
+use eframe::egui::{self, Ui, global_theme_preference_buttons};
 
 #[tokio::main]
 async fn main() -> eframe::Result {
@@ -57,7 +61,6 @@ struct MainApp {
     faq: Option<bool>,
     config_path: PathBuf,
 }
-
 impl Default for MainApp {
     fn default() -> Self {
         let app_data = get_path();
@@ -345,7 +348,31 @@ impl eframe::App for MainApp {
             egui::CentralPanel::default().show(ctx, |ui| {
                 ui.spinner();
                 ui.label("Downloading dependencies");
+                file_status(ui, &self.app_data.deno_zip);
+                file_status(ui, &self.app_data.yt_dlp);
+                if let Some(file) = &self.app_data.ffmpeg_zip {
+                    file_status(ui, file);
+                }
             });
+        }
+    }
+}
+
+fn file_status(ui: &mut Ui, file: &Path) {
+    match fs::metadata(&file) {
+        Ok(value) => {
+            if let Some(f) = file.file_name().and_then(|f| f.to_str()) {
+                ui.label(
+                    egui::RichText::new(format!("{f}: {} Mib", (value.len() / 1024 / 1024)))
+                        .color(Color32::LIGHT_BLUE),
+                );
+            }
+        }
+
+        Err(_) => {
+            if let Some(f) = file.file_name().and_then(|f| f.to_str()) {
+                ui.label(egui::RichText::new(format!("{f}: Checking")).color(Color32::LIGHT_BLUE));
+            }
         }
     }
 }
