@@ -104,7 +104,11 @@ impl MusicDownload {
             });
             let slider = egui::widgets::Slider::new(&mut self.sim_rate, 0..=100)
                 .text("Similarity threshold");
-            let response = ui.add(slider);
+            let response = ui
+                .add(slider)
+                .on_hover_cursor(egui::CursorIcon::Grab)
+                .on_hover_and_drag_cursor(egui::CursorIcon::Grabbing)
+                .on_hover_text("the similarity bettwen your music and the data from musicbrainz");
             if response.changed() {
                 match config::modifier_config(&self.config_path, |cfg| {
                     cfg.music_dl.threshold = Some(self.sim_rate)
@@ -151,6 +155,7 @@ impl MusicDownload {
                 .add(egui::Button::new(
                     egui::RichText::new("Auto generated").color(Color32::LIGHT_BLUE),
                 ))
+                .on_hover_text("Use youtube auto generated subtitle")
                 .clicked()
             {
                 self.auto_lyric = false;
@@ -166,7 +171,11 @@ impl MusicDownload {
                 }
             }
         } else {
-            if ui.button("Auto generated").clicked() {
+            if ui
+                .button("Auto generated")
+                .on_hover_text("Use youtube auto generated subtitle")
+                .clicked()
+            {
                 self.auto_lyric = true;
                 match config::modifier_config(&self.config_path, |cfg| {
                     cfg.music_dl.auto_gen_sub = Some(self.auto_lyric)
@@ -209,7 +218,9 @@ impl MusicDownload {
                             .open_single_file()
                             .show();
 
-                        if let Ok(pa) = path && let Some(p) = pa {
+                        if let Ok(pa) = path
+                            && let Some(p) = pa
+                        {
                             self.cookies = Some(p.to_string_lossy().into_owned());
                         } else {
                             log::info!("No file was selected.");
@@ -230,7 +241,11 @@ impl MusicDownload {
                     }
                 }
                 ui.menu_button("Cover", |ui| {
-                    let check_1 = ui.checkbox(&mut self.use_playlist_cover, "Use playlist cover");
+                    let check_1 = ui
+                        .checkbox(&mut self.use_playlist_cover, "Use playlist cover")
+                        .on_hover_text(
+                            "Use the playlist cover from youtube as cover for the music file",
+                        );
                     if check_1.changed() {
                         match config::modifier_config(&self.config_path, |cfg| {
                             cfg.music_dl.use_playlist_cover = Some(self.use_playlist_cover)
@@ -284,7 +299,8 @@ impl MusicDownload {
                         }
                     }
                     if self.lyrics {
-                        ui.toggle_value(&mut self.sanitize_lyrics, "Sanitization");
+                        ui.toggle_value(&mut self.sanitize_lyrics, "Sanitization")
+                            .on_hover_text("sanitize the lyrics from youtube");
                         self.auto_on(ui);
                     }
 
@@ -365,7 +381,9 @@ impl MusicDownload {
                     .open_single_dir()
                     .show();
 
-                if let Ok(pa) = path && let Some(p) = pa {
+                if let Ok(pa) = path
+                    && let Some(p) = pa
+                {
                     self.out_directory = p.to_string_lossy().into_owned();
                 } else {
                     log::info!("No file selected.");

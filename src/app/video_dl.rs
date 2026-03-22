@@ -132,7 +132,9 @@ impl VideoDownload {
                 .add(egui::Button::new(
                     egui::RichText::new("Auto generated").color(Color32::LIGHT_BLUE),
                 ))
+                .on_hover_text("Use youtube auto generated subtitle")
                 .clicked()
+
             {
                 self.auto_sub = false;
                 match config::modifier_config(&self.config_path, |cfg| {
@@ -147,7 +149,7 @@ impl VideoDownload {
                 }
             }
         } else {
-            if ui.button("Auto generated").clicked() {
+            if ui.button("Auto generated").on_hover_text("Use youtube auto generated subtitle").clicked() {
                 self.auto_sub = true;
                 match config::modifier_config(&self.config_path, |cfg| {
                     cfg.video_dl.auto_gen_sub = Some(self.auto_sub)
