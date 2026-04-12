@@ -2,7 +2,7 @@ use crate::app::cores::depen_manager::Depen;
 
 use crate::app::cores::notify::{button_sound, done_sound, fail_sound};
 use eframe::egui::{self, Color32};
-use native_dialog::DialogBuilder;
+use rfd::FileDialog;
 use std::error::Error;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -182,13 +182,12 @@ impl Ffmpeg {
                 filter.extend_from_slice(AUDIO_FORMAT);
                 filter.extend_from_slice(VIDEO_FORMAT);
                 filter.extend_from_slice(IMAGE_FORMAT);
-                let path = DialogBuilder::file()
-                    .set_location(&self.out_directory)
-                    .add_filter("Media", filter)
-                    .open_single_file()
-                    .show();
+                let path = FileDialog::new()
+                    .set_directory(&self.out_directory)
+                    .add_filter("Media", &filter[..])
+                    .pick_file();
 
-                if let Ok(pa) = path && let Some(p) = pa {
+                if let Some(p) = path {
                     self.input_file = p.to_string_lossy().into_owned();
                     if let Some(out_path) = p.parent().and_then(|x| x.to_str()) {
                         self.out_directory = out_path.to_string();
@@ -207,12 +206,11 @@ impl Ffmpeg {
                 .labelled_by(dir_label.id)
                 .clicked()
             {
-                let path = DialogBuilder::file()
-                    .set_location(&self.out_directory)
-                    .open_single_dir()
-                    .show();
+                let path = FileDialog::new()
+                    .set_directory(&self.out_directory)
+                    .pick_folder();
 
-                if let Ok(pa) = path && let Some(p) = pa {
+                if let Some(p) = path {
                     self.out_directory = p.to_string_lossy().into_owned();
                 } else {
                     log::info!("No file selected.");

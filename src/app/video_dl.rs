@@ -3,7 +3,7 @@ use crate::app::cores::url_checker::{UrlStatus, playlist_check, remove_radio};
 use crate::app::share_view::lang_widget::LangThing;
 use crate::app::share_view::url_status_view;
 use eframe::egui::{self, Color32};
-use native_dialog::DialogBuilder;
+use rfd::FileDialog;
 use std::fs;
 use std::process::Command;
 use std::sync::atomic::{AtomicI8, Ordering};
@@ -134,7 +134,6 @@ impl VideoDownload {
                 ))
                 .on_hover_text("Use youtube auto generated subtitle")
                 .clicked()
-
             {
                 self.auto_sub = false;
                 match config::modifier_config(&self.config_path, |cfg| {
@@ -149,7 +148,11 @@ impl VideoDownload {
                 }
             }
         } else {
-            if ui.button("Auto generated").on_hover_text("Use youtube auto generated subtitle").clicked() {
+            if ui
+                .button("Auto generated")
+                .on_hover_text("Use youtube auto generated subtitle")
+                .clicked()
+            {
                 self.auto_sub = true;
                 match config::modifier_config(&self.config_path, |cfg| {
                     cfg.video_dl.auto_gen_sub = Some(self.auto_sub)
@@ -182,13 +185,12 @@ impl VideoDownload {
                         }
                     }
                     if ui.button("Cookie directory").clicked() {
-                        let path = DialogBuilder::file()
-                            .set_location(&self.out_directory)
-                            .add_filter("cookies.txt", ["txt"])
-                            .open_single_file()
-                            .show();
+                        let path = FileDialog::new()
+                            .set_directory(&self.out_directory)
+                            .add_filter("cookies.txt", &["txt"])
+                            .pick_file();
 
-                        if let Ok(pa) = path && let Some(p) = pa {
+                        if let Some(p) = path {
                             self.cookies = Some(p.to_string_lossy().into_owned());
                         } else {
                             log::info!("No file was selected.");
@@ -304,12 +306,11 @@ impl VideoDownload {
                 .labelled_by(dir_label.id)
                 .clicked()
             {
-                let path = DialogBuilder::file()
-                    .set_location(&self.out_directory)
-                    .open_single_dir()
-                    .show();
+                let path = FileDialog::new()
+                    .set_directory(&self.out_directory)
+                    .pick_folder();
 
-                if let Ok(pa) = path && let Some(p) = pa {
+                if let Some(p) = path {
                     self.out_directory = p.to_string_lossy().into_owned();
                 } else {
                     log::info!("No file was selected.");
