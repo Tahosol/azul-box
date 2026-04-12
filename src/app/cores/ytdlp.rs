@@ -1,5 +1,4 @@
 use crate::app::cores::depen_manager::{Depen, get_path};
-use crate::app::cores::files::get_filename_not_exact;
 use crate::app::cores::lrclib::lrclib_fetch;
 use crate::app::cores::{kugou, musicbrainz};
 use std::error::Error;
@@ -126,14 +125,14 @@ pub fn get_all_music_title_and_playlist(
 
     for i in reader {
         let item = i?.path();
-        if let Some(file) = item.to_str()
+        if let Some(file) = item.file_name().and_then(|s| s.to_str())
             && file.contains(".info.json")
         {
             if let Ok(infojson) = serde_json::from_str::<InfoJson>(&fs::read_to_string(&item)?) {
                 if infojson.filetype == "playlist" {
                     playlist = Some(infojson.title);
                 } else {
-                    titles.push(infojson.title);
+                    titles.push(file.trim_end_matches(".info.json").to_string());
                 }
                 fs::remove_file(item)?;
             } else {
@@ -214,10 +213,7 @@ impl Music {
 
         for i in filenames_from_json_info {
             let extension = format!(".{}", format_name);
-            let filename_errorable = i;
-
-            let filename = get_filename_not_exact(&self.directory, &filename_errorable)
-                .ok_or("Fail to get filename")?;
+            let filename = i;
 
             log::info!("filename: {filename}");
 
