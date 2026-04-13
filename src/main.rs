@@ -40,7 +40,7 @@ async fn main() -> eframe::Result {
     eframe::run_native(
         "Azul box",
         options,
-        Box::new(|_cc| Ok(Box::<MainApp>::default())),
+        Box::new(|cc| Ok(Box::new(MainApp::new(cc)))),
     )
 }
 
@@ -58,8 +58,24 @@ struct MainApp {
     faq: Option<bool>,
     config_path: PathBuf,
 }
-impl Default for MainApp {
-    fn default() -> Self {
+fn configure_text_styles(ctx: &egui::Context) {
+    use FontFamily::{Monospace, Proportional};
+    use egui::{FontFamily, FontId, TextStyle};
+    use std::collections::BTreeMap;
+
+    let text_styles: BTreeMap<TextStyle, FontId> = [
+        (TextStyle::Heading, FontId::new(30.0, Proportional)),
+        (TextStyle::Body, FontId::new(24.0, Proportional)),
+        (TextStyle::Monospace, FontId::new(12.0, Monospace)),
+        (TextStyle::Button, FontId::new(24.0, Proportional)),
+        (TextStyle::Small, FontId::new(8.0, Proportional)),
+    ]
+    .into();
+    ctx.all_styles_mut(move |style| style.text_styles = text_styles.clone());
+}
+impl MainApp {
+    fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        configure_text_styles(&cc.egui_ctx);
         let app_data = get_path();
         let yt_version = match ytdlp::version_check(&app_data) {
             Some(version) => version,
@@ -92,9 +108,7 @@ impl Default for MainApp {
 }
 
 impl eframe::App for MainApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        let mut style = (*ctx.style()).clone();
-
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         if !self.run_on_start {
             #[cfg(target_os = "linux")]
             {
@@ -160,24 +174,7 @@ impl eframe::App for MainApp {
             self.run_on_start = true;
         };
 
-        style
-            .text_styles
-            .get_mut(&egui::TextStyle::Heading)
-            .unwrap()
-            .size = 30.0;
-        style
-            .text_styles
-            .get_mut(&egui::TextStyle::Body)
-            .unwrap()
-            .size = 24.0;
-        style
-            .text_styles
-            .get_mut(&egui::TextStyle::Button)
-            .unwrap()
-            .size = 24.0;
-
-        ctx.set_style(style.clone());
-        egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
+        egui::Panel::top("top_panel").show_inside(ui, |ui| {
             ui.vertical_centered_justified(|ui| {
                 ui.heading("Azul Box");
                 ui.horizontal_wrapped(|ui| {
@@ -291,11 +288,10 @@ impl eframe::App for MainApp {
             .is_install_depen
             .load(std::sync::atomic::Ordering::Relaxed)
         {
-            egui::CentralPanel::default().show(ctx, |ui| ui.label(""));
-            egui::SidePanel::left("Panel")
+            egui::Panel::left("Panel")
                 .resizable(true)
-                .width_range(50.0..=100.0)
-                .show(ctx, |ui| {
+                .size_range(50.0..=100.0)
+                .show_inside(ui, |ui| {
                     ui.add(egui::Checkbox::new(
                         &mut self.yt,
                         egui::RichText::new("yt-dl").size(17.0),
@@ -308,7 +304,7 @@ impl eframe::App for MainApp {
                     ui.separator();
                 });
             if self.faq.is_none() {
-                egui::Window::new("FAQ").auto_sized().default_open(true).anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0]).show(ctx, |ui| {
+                egui::Window::new("FAQ").auto_sized().default_open(true).anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0]).show(ui, |ui| {
                     ui.label(egui::RichText::new("- If Azul Box stops working, please use the Update button to install the newest version of the YouTube downloader and see if it fixes the bug.").size(18.0));
                     ui.label(egui::RichText::new("- There is a Log button in the About tab that will show you all the logs of your usage for debugging purposes.").size(18.0));
                     ui.label(egui::RichText::new("- In a Flatpak environment, Azul Box can only install video and audio into the Downloads, Video, Music directories.").size(18.0));
@@ -324,12 +320,12 @@ impl eframe::App for MainApp {
                     .default_open(false)
                     .default_pos(egui::Pos2::new(100.0, 100.0))
                     .resizable(false)
-                    .show(ctx, |ui| self.music_download.ui(ui, &self.app_data));
+                    .show(ui, |ui| self.music_download.ui(ui, &self.app_data));
                 //Video
                 egui::Window::new("Video-dl")
                     .default_open(false)
                     .resizable(false)
-                    .show(ctx, |ui| {
+                    .show(ui, |ui| {
                         self.video_download.ui(ui, &self.app_data);
                     });
             }
@@ -337,12 +333,13 @@ impl eframe::App for MainApp {
                 egui::Window::new("FFmpeg")
                     .default_open(false)
                     .resizable(false)
-                    .show(ctx, |ui| {
+                    .show(ui, |ui| {
                         self.ffmpeg_ui.ui(ui, &self.app_data);
                     });
             }
+            egui::CentralPanel::default().show_inside(ui, |ui| ui.label(""));
         } else {
-            egui::CentralPanel::default().show(ctx, |ui| {
+            egui::CentralPanel::default().show_inside(ui, |ui| {
                 ui.spinner();
                 ui.label("Downloading dependencies");
                 file_status(ui, &self.app_data.deno_zip);
