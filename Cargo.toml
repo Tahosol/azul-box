@@ -32,6 +32,5 @@ zip = {version = "8.3.1", default-features = false, features = ["bzip2","deflate
 
 [profile.release]
 strip = true
-opt-level = "z"
 lto = true
 codegen-units = 1
