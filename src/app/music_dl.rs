@@ -282,7 +282,9 @@ impl MusicDownload {
 
                     ui.separator();
 
-                    let youtube_lyrics = ui.checkbox(&mut self.lyrics, "youtube lyrics");
+                    let youtube_lyrics = ui
+                        .checkbox(&mut self.lyrics, "youtube lyrics")
+                        .on_hover_text("Enable YouTube subtitle lyrics and automatic translation");
                     if youtube_lyrics.changed() {
                         match config::modifier_config(&self.config_path, |cfg| {
                             cfg.music_dl.lyrics = Some(self.lyrics)

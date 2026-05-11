@@ -23,7 +23,7 @@ pub fn work(
 ) -> Result<(), Box<dyn Error>> {
     let mut lyrics = String::new();
     if let Some(entris) = potential_lyrics {
-        for e in entris {
+        for e in &entris {
             if e.0 == lang_code {
                 for sub in e.1 {
                     if sub.ext.trim() == "vtt" {
@@ -31,19 +31,23 @@ pub fn work(
                             ureq::get(&sub.url).header("User-Agent", USERAGENT).call()?;
                         let vtt_content = response.body_mut().read_to_string()?;
                         lyrics = vtt_to_lrc(vtt_content);
+                        dbg!("USE NORMAL SUB");
                         break;
                     }
                 }
-            } else {
-                for sub in e.1 {
-                    if sub.ext.trim() == "vtt" {
-                        let mut response =
-                            ureq::get(&sub.url).header("User-Agent", USERAGENT).call()?;
-                        let vtt_content = response.body_mut().read_to_string()?;
-                        lyrics = vtt_to_lrc(vtt_content);
-                        lyrics = translate(lang_code, &lyrics)?;
-                        break;
-                    }
+            }
+        }
+        if lyrics.is_empty() && !&entris.is_empty() {
+            let sub = entris.values().collect::<Vec<_>>()[0];
+            for sub_format in sub {
+                if sub_format.ext.trim() == "vtt" {
+                    let mut response = ureq::get(&sub_format.url)
+                        .header("User-Agent", USERAGENT)
+                        .call()?;
+                    let vtt_content = response.body_mut().read_to_string()?;
+                    lyrics = translate(lang_code, &vtt_to_lrc(vtt_content))?;
+                    dbg!("USE TRANSLATED SUB");
+                    break;
                 }
             }
         }

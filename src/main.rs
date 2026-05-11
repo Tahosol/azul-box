@@ -254,7 +254,11 @@ impl eframe::App for MainApp {
                             }
                         });
 
-                        if ui.button("Update").clicked() {
+                        if ui
+                            .button("Update")
+                            .on_hover_text("Update yt-dlp and deno")
+                            .clicked()
+                        {
                             if !self
                                 .is_install_depen
                                 .load(std::sync::atomic::Ordering::Relaxed)

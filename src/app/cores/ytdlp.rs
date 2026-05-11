@@ -208,12 +208,10 @@ impl Music {
             .arg("--write-info-json")
             .current_dir(&self.directory);
 
-        if self.lyrics {
-            if self.lyric_auto {
-                yt.arg("--write-auto-subs");
-                yt.arg("--write-subs").arg("--convert-subs").arg("lrc");
-                yt.arg("--sub-langs").arg(&self.lang_code);
-            }
+        if self.lyrics && self.lyric_auto {
+            yt.arg("--write-auto-subs");
+            yt.arg("--write-subs").arg("--convert-subs").arg("lrc");
+            yt.arg("--sub-langs").arg(&self.lang_code);
         }
         yt.arg(&self.link);
         let output = yt.output()?;
