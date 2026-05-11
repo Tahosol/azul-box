@@ -1,6 +1,7 @@
 use crate::app::cores::depen_manager::{Depen, get_path};
 use crate::app::cores::lrclib::lrclib_fetch;
 use crate::app::cores::{kugou, musicbrainz};
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -110,16 +111,28 @@ pub struct Music {
 
 use serde::Deserialize;
 #[derive(Debug, Deserialize)]
-struct InfoJson {
+pub struct InfoJson {
     #[serde(rename = "_type")]
-    filetype: String,
-    title: String,
+    pub filetype: String,
+    pub title: String,
+    pub subtitles: Option<HashMap<String, Vec<Entry>>>,
+}
+#[derive(Debug, Deserialize)]
+pub struct Entry {
+    pub ext: String,
+    pub url: String,
 }
 
 pub fn get_all_music_title_and_playlist(
     path: &Path,
-) -> Result<(Vec<String>, Option<String>), Box<dyn Error>> {
-    let mut titles: Vec<String> = vec![];
+) -> Result<
+    (
+        HashMap<String, Option<HashMap<String, Vec<Entry>>>>,
+        Option<String>,
+    ),
+    Box<dyn Error>,
+> {
+    let mut titles: HashMap<String, Option<HashMap<String, Vec<Entry>>>> = HashMap::new();
     let mut playlist: Option<String> = None;
     let reader = fs::read_dir(path)?;
 
@@ -132,7 +145,10 @@ pub fn get_all_music_title_and_playlist(
                 if infojson.filetype == "playlist" {
                     playlist = Some(infojson.title);
                 } else {
-                    titles.push(file.trim_end_matches(".info.json").to_string());
+                    titles.insert(
+                        file.trim_end_matches(".info.json").to_string(),
+                        infojson.subtitles,
+                    );
                 }
                 fs::remove_file(item)?;
             } else {
@@ -195,10 +211,7 @@ impl Music {
         if self.lyrics {
             if self.lyric_auto {
                 yt.arg("--write-auto-subs");
-            }
-            yt.arg("--write-subs").arg("--convert-subs").arg("lrc");
-
-            if self.lang_code != "en" {
+                yt.arg("--write-subs").arg("--convert-subs").arg("lrc");
                 yt.arg("--sub-langs").arg(&self.lang_code);
             }
         }
@@ -213,7 +226,7 @@ impl Music {
 
         for i in filenames_from_json_info {
             let extension = format!(".{}", format_name);
-            let filename = i;
+            let filename = i.0;
 
             log::info!("filename: {filename}");
 
@@ -244,6 +257,8 @@ impl Music {
                     format_name,
                     &self.directory,
                     self.sanitize_lyrics,
+                    &self.lang_code,
+                    i.1,
                 ) {
                     Ok(_) => log::info!("Lyrics from youtube embedded"),
                     Err(e) => log::error!("Fail to use lyrics from youtube: {e}"),

@@ -1,7 +1,11 @@
+use crate::USERAGENT;
 use crate::app::cores::files::file_finder;
+use crate::app::cores::translate::translate;
+use crate::app::cores::ytdlp::Entry;
 
 use lofty::tag::TagType;
 use log::{error, info};
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 use std::path::Path;
@@ -14,19 +18,51 @@ pub fn work(
     format_name: &str,
     directory: &str,
     sanitize: bool,
+    lang_code: &str,
+    potential_lyrics: Option<HashMap<String, Vec<Entry>>>,
 ) -> Result<(), Box<dyn Error>> {
-    let lyrics_file = match file_finder(directory, filename, &["lrc"]) {
-        Some(path) => path,
-        None => {
-            error!("Lyrics file not found.");
-            return Err("Lyrics file not found.".into());
+    let mut lyrics = String::new();
+    if let Some(entris) = potential_lyrics {
+        for e in entris {
+            if e.0 == lang_code {
+                for sub in e.1 {
+                    if sub.ext.trim() == "vtt" {
+                        let mut response =
+                            ureq::get(&sub.url).header("User-Agent", USERAGENT).call()?;
+                        let vtt_content = response.body_mut().read_to_string()?;
+                        lyrics = vtt_to_lrc(vtt_content);
+                        break;
+                    }
+                }
+            } else {
+                for sub in e.1 {
+                    if sub.ext.trim() == "vtt" {
+                        let mut response =
+                            ureq::get(&sub.url).header("User-Agent", USERAGENT).call()?;
+                        let vtt_content = response.body_mut().read_to_string()?;
+                        lyrics = vtt_to_lrc(vtt_content);
+                        lyrics = translate(lang_code, &lyrics)?;
+                        break;
+                    }
+                }
+            }
         }
-    };
-    let lyrics = if sanitize {
-        lyrics_cleaner(&fs::read_to_string(&lyrics_file)?)?
-    } else {
-        fs::read_to_string(&lyrics_file)?
-    };
+    }
+    if lyrics.is_empty() {
+        let lyrics_file = match file_finder(directory, filename, &["lrc"]) {
+            Some(path) => path,
+            None => {
+                error!("Lyrics file not found.");
+                return Err("Lyrics file not found.".into());
+            }
+        };
+        lyrics = if sanitize {
+            lyrics_cleaner(&fs::read_to_string(&lyrics_file)?)?
+        } else {
+            fs::read_to_string(&lyrics_file)?
+        };
+        fs::remove_file(&lyrics_file)?;
+    }
     if !lyrics.is_empty() && VALID_FORMAT.contains(&format_name) {
         use lofty::config::WriteOptions;
         use lofty::prelude::*;
@@ -57,10 +93,7 @@ pub fn work(
         }
         tag.save_to_path(music_file, WriteOptions::default())?;
 
-
-
         info!("Lyrics successfully saved to the music file.");
-        fs::remove_file(&lyrics_file)?;
         info!("Lyrics file removed after processing.");
     }
     Ok(())
@@ -231,4 +264,30 @@ fn collect_time_stamp(lyrics: &str) -> Result<Vec<String>, Box<dyn Error>> {
         .find_iter(lyrics)
         .map(|time| time.as_str().to_string())
         .collect())
+}
+
+//May need to clean this code later
+fn vtt_to_lrc(str: String) -> String {
+    let mut lrc: Vec<LrcLine> = Vec::new();
+    let mut string: Option<&str> = None;
+    for (_, st) in str.lines().enumerate() {
+        if st.contains("-->") {
+            string = st.split("-->").nth(0);
+        } else if let Some(time) = string {
+            let time: Vec<&str> = time.split(":").collect();
+            lrc.push(LrcLine {
+                timestamp: TimeStamp {
+                    minutes: time[1].trim().parse().unwrap(),
+                    seconds: time[2].trim().parse().unwrap(),
+                },
+                content: st.to_string(),
+            });
+            string = None;
+        }
+    }
+    return lrc
+        .iter()
+        .map(|x| x.return_lrc())
+        .collect::<Vec<String>>()
+        .join("\n");
 }
