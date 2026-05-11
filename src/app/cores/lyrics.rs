@@ -31,7 +31,6 @@ pub fn work(
                             ureq::get(&sub.url).header("User-Agent", USERAGENT).call()?;
                         let vtt_content = response.body_mut().read_to_string()?;
                         lyrics = vtt_to_lrc(vtt_content);
-                        dbg!("USE NORMAL SUB");
                         break;
                     }
                 }
@@ -46,7 +45,6 @@ pub fn work(
                         .call()?;
                     let vtt_content = response.body_mut().read_to_string()?;
                     lyrics = translate(lang_code, &vtt_to_lrc(vtt_content))?;
-                    dbg!("USE TRANSLATED SUB");
                     break;
                 }
             }
