@@ -26,7 +26,7 @@ pub fn video_download(
     use_cookies: bool,
     res: i32,
     yt_dlp: PathBuf,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<String, Box<dyn Error>> {
     let n = frag.to_string().to_owned();
 
     let mut yt = Command::new(yt_dlp);
@@ -76,11 +76,18 @@ pub fn video_download(
     let output = yt.arg(link).output()?;
 
     let log = String::from_utf8_lossy(&output.stdout);
+    let filename = &log
+        .lines()
+        .filter(|x| x.starts_with("[Metadata] Adding metadata to"))
+        .map(|x| x.replace("[Metadata] Adding metadata to", ""))
+        .map(|x| x.trim().to_string())
+        .collect::<Vec<String>>()
+        .join(" ");
     log::info!("{log}");
 
     if output.status.success() {
         log::warn!("{}", String::from_utf8_lossy(&output.stderr));
-        Ok(())
+        Ok(filename.to_string())
     } else {
         log::error!("{}", String::from_utf8_lossy(&output.stderr));
         Err(String::from_utf8_lossy(&output.stderr).into())
@@ -162,7 +169,7 @@ pub fn get_all_music_title_and_playlist(
 }
 
 impl Music {
-    pub fn download(self) -> Result<(), Box<dyn Error>> {
+    pub fn download(self) -> Result<String, Box<dyn Error>> {
         let format_name = match self.format {
             1 => "opus",
             2 => "flac",
@@ -222,9 +229,11 @@ impl Music {
         let (filenames_from_json_info, play) =
             get_all_music_title_and_playlist(Path::new(&self.directory))?;
 
+        let mut filenames = "".to_string();
         for i in filenames_from_json_info {
             let extension = format!(".{}", format_name);
             let filename = i.0;
+            filenames.push_str(&format!(" \"{filename}\" "));
 
             log::info!("filename: {filename}");
 
@@ -277,7 +286,7 @@ impl Music {
         }
         if output.status.success() {
             log::warn!("{}", String::from_utf8_lossy(&output.stderr));
-            Ok(())
+            Ok(filenames)
         } else {
             log::error!("{}", String::from_utf8_lossy(&output.stderr));
             Err(String::from_utf8_lossy(&output.stderr).into())

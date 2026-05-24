@@ -139,7 +139,7 @@ impl eframe::App for MainApp {
                             }
                             Err(e) => {
                                 log::error!("dependencies install error {e}");
-                                let _ = fail_sound();
+                                let _ = fail_sound("dependencies update fail");
                             }
                         }
                     });
@@ -165,7 +165,7 @@ impl eframe::App for MainApp {
                         }
                         Err(e) => {
                             log::error!("dependencies install error {e}");
-                            let _ = fail_sound();
+                            let _ = fail_sound("dependencies update fail");
                         }
                     }
                 });
@@ -278,7 +278,7 @@ impl eframe::App for MainApp {
                                         }
                                         Err(e) => {
                                             log::error!("dependencies install error {e}");
-                                            let _ = fail_sound();
+                                            let _ = fail_sound("dependencies update fail");
                                         }
                                     }
                                 });

@@ -437,14 +437,14 @@ impl MusicDownload {
                             yt_dlp: yt_dlp_path,
                         };
                         match yt.download() {
-                            Ok(_) => {
+                            Ok(f) => {
                                 progress.store(2, Ordering::Relaxed);
-                                let _ = done_sound();
+                                let _ = done_sound("Music Download", f);
                             }
                             Err(e) => {
                                 progress.store(3, Ordering::Relaxed);
                                 *error_message_clone.lock().unwrap() = e.to_string();
-                                let _ = fail_sound();
+                                let _ = fail_sound("Music Download");
                             }
                         }
                     });

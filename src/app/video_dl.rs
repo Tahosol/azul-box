@@ -345,14 +345,14 @@ impl VideoDownload {
                             link, directory, format, frags, subtile, &lang, auto_gen, cook,
                             use_cook, res, yt_dlp,
                         ) {
-                            Ok(_) => {
+                            Ok(f) => {
                                 progress.store(2, Ordering::Relaxed);
-                                let _ = done_sound();
+                                let _ = done_sound("Video Download", f);
                             }
                             Err(e) => {
                                 progress.store(3, Ordering::Relaxed);
                                 *error_message_clone.lock().unwrap() = e.to_string();
-                                let _ = fail_sound();
+                                let _ = fail_sound("Video Download");
                             }
                         }
                     });

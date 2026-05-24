@@ -230,15 +230,15 @@ impl Ffmpeg {
                     let error_message_clone = Arc::clone(&self.error_message);
 
                     tokio::task::spawn(async move {
-                        match ffmpeg_cli(input, directory, format_out, ffmpeg, compression) {
+                        match ffmpeg_cli(&input, directory, format_out, ffmpeg, compression) {
                             Ok(_) => {
                                 progress.store(2, Ordering::Relaxed);
-                                let _ = done_sound();
+                                let _ = done_sound("ffmpeg convertor", input);
                             }
                             Err(e) => {
                                 *error_message_clone.lock().unwrap() = e.to_string();
                                 progress.store(3, Ordering::Relaxed);
-                                let _ = fail_sound();
+                                let _ = fail_sound("ffmpeg convertor");
                             }
                         }
                     });
@@ -288,7 +288,7 @@ impl Ffmpeg {
 }
 
 fn ffmpeg_cli(
-    input: String,
+    input: &str,
     directory: String,
     format_out: String,
     ffmpeg: Option<PathBuf>,
