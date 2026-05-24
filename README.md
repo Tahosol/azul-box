@@ -71,6 +71,5 @@ sudo rm /usr/share/applications/page.codeberg.tahoso.azul-box.desktop
 <div align="center">
 <img src="./assets/pic1.webp" width="450"></img>
 <img src="./assets/pic2.webp" width="450"></img>
-</div>
-
 <video src="https://github.com/user-attachments/assets/07a4689a-24ee-4fa1-ae87-0c99072d7fdd" width="740" height="463" controls></video>
+</div>
