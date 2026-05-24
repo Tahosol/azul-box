@@ -27,7 +27,7 @@ The Windows version is **highly** experimental. I do not have time to test it on
 - Convert Images formats powered by ffmpeg
 - Convert Video formats powered by ffmpeg
 
-The video/music download will technically support all yt-dlp [support list](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md) not just youtube.
+The video/music download will technically support all yt-dlp [supported sites](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md), not just YouTube, but I cannot guarantee that features like thumbnail cropping, lyrics embedding, or similar functionality will work properly.
 
 The features will be really random because this is a software I made to randomly do something I needed.
 
@@ -35,7 +35,6 @@ The features will be really random because this is a software I made to randomly
 
 - cargo
 - ffmpeg
-- python
 
 ## Installation
 
@@ -66,7 +65,6 @@ sudo rm /usr/share/icons/hicolor/scalable/apps/page.codeberg.tahoso.azul-box.svg
 sudo rm /usr/share/applications/page.codeberg.tahoso.azul-box.desktop
 ```
 
-or just uninstall via your package manager if you install via apt
 
 ## Showcase
 
@@ -75,4 +73,4 @@ or just uninstall via your package manager if you install via apt
 <img src="./assets/pic2.webp" width="450"></img>
 </div>
 
-[Demo](https://github.com/user-attachments/assets/07a4689a-24ee-4fa1-ae87-0c99072d7fdd)
+<video src="https://github.com/user-attachments/assets/07a4689a-24ee-4fa1-ae87-0c99072d7fdd" width="740" height="463" controls></video>
