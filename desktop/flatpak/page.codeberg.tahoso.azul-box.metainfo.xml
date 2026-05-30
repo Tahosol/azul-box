@@ -64,6 +64,18 @@
   </branding>
 
   <releases>
+  <release version="v0.3.1" date="2026-5-30">
+    <url
+                type="details"
+            >https://codeberg.org/Tahoso/azul-box/releases/tag/v0.3.1</url>
+    <description>
+        <ul>
+          <li>fix bug related to lyrics</li>
+          <li>fix bug related to music thumbnail</li>
+          <li>added new way to keep lrc file</li>
+        </ul>
+    </description>
+    </release>
   <release version="v0.3.0" date="2026-4-15">
     <url
                 type="details"
