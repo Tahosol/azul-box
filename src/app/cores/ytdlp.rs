@@ -1,6 +1,6 @@
 use crate::app::cores::depen_manager::{Depen, get_path};
 use crate::app::cores::lrclib::lrclib_fetch;
-use crate::app::cores::{kugou, musicbrainz};
+use crate::app::cores::{kugou, musicbrainz, url_checker};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
@@ -181,7 +181,7 @@ impl Music {
         let n = self.frags.to_string();
         log::info!("{}", n);
 
-        let mut yt = Command::new(self.yt_dlp);
+        let mut yt = Command::new(&self.yt_dlp);
 
         if let Some(cookie) = self.cookies
             && self.use_cookies
@@ -213,6 +213,7 @@ impl Music {
             .arg("--compat-options")
             .arg("no-live-chat")
             .arg("--write-info-json")
+            .arg("--no-write-playlist-metafiles")
             .current_dir(&self.directory);
 
         if self.lyrics && self.lyric_auto {
@@ -220,6 +221,26 @@ impl Music {
             yt.arg("--write-subs").arg("--convert-subs").arg("lrc");
             yt.arg("--sub-langs").arg(&self.lang_code);
         }
+
+        match url_checker::playlist_check(&self.link) {
+            url_checker::UrlStatus::Playlist => {
+                let mut yt_x = Command::new(&self.yt_dlp);
+                yt_x.arg("--skip-download")
+                    .arg("--write-info-json")
+                    .arg("--playlist-items")
+                    .arg("0")
+                    .arg("--output")
+                    .arg("playlist%(title)s.%(ext)s")
+                    .arg("--write-thumbnail")
+                    .current_dir(&self.directory)
+                    .arg(&self.link);
+                let output = yt_x.output()?;
+                let log = String::from_utf8(output.stdout)?;
+                log::info!("{}", log);
+            }
+            _ => {}
+        }
+
         yt.arg(&self.link);
         let output = yt.output()?;
 
@@ -279,10 +300,12 @@ impl Music {
             }
         }
         if let Some(trash_cover) = play {
-            let _ =
-                std::fs::remove_file(Path::new(&self.directory).join(format!("{trash_cover}.png")));
-            let _ =
-                std::fs::remove_file(Path::new(&self.directory).join(format!("{trash_cover}.jpg")));
+            let _ = std::fs::remove_file(
+                Path::new(&self.directory).join(format!("playlist{trash_cover}.png")),
+            );
+            let _ = std::fs::remove_file(
+                Path::new(&self.directory).join(format!("playlist{trash_cover}.jpg")),
+            );
         }
         if output.status.success() {
             log::warn!("{}", String::from_utf8_lossy(&output.stderr));
