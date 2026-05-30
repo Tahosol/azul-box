@@ -1,14 +1,21 @@
-use std::error::Error;
 use std::path::Path;
+use std::{error::Error, fs};
 use url::form_urlencoded;
 
-use lofty::{self, config::WriteOptions, prelude::*, probe::Probe, tag::{Tag, TagType}};
+use lofty::{
+    self,
+    config::WriteOptions,
+    prelude::*,
+    probe::Probe,
+    tag::{Tag, TagType},
+};
 use serde::Deserialize;
 
+use crate::app::cores::files::change_ext;
 use crate::app::cores::{string_cleaner, translate::translate};
 
-pub fn lrclib_fetch(opt: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
-    let mut tagged_file = Probe::open(opt)?.read()?;
+pub fn lrclib_fetch(musicfile: &Path, lang: &str, keep_lrc: bool) -> Result<(), Box<dyn Error>> {
+    let mut tagged_file = Probe::open(musicfile)?.read()?;
 
     let tag = match tagged_file.primary_tag_mut() {
         Some(primary_tag) => primary_tag,
@@ -42,13 +49,19 @@ pub fn lrclib_fetch(opt: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
     if !ly.is_empty() {
         log::info!("Lyrics Found From lrclib");
         let lyric_final = translate(lang, &ly)?;
+
+        if keep_lrc {
+            fs::write(change_ext(&musicfile, "lrc"), &lyric_final)?;
+            log::info!("Written lrc file from lrclib");
+        }
+
         if !lyric_final.is_empty() {
             if tag.tag_type() == TagType::Id3v2 {
                 tag.insert_text(ItemKey::UnsyncLyrics, lyric_final);
             } else {
                 tag.insert_text(ItemKey::Lyrics, lyric_final);
             }
-            tag.save_to_path(opt, WriteOptions::default())?;
+            tag.save_to_path(musicfile, WriteOptions::default())?;
         }
     }
     Ok(())

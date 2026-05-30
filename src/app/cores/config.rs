@@ -41,9 +41,9 @@ pub fn load_config(path: &Path) -> Result<Config, Box<dyn std::error::Error>> {
     let toml_string = fs::read_to_string(path)?;
     let config = toml::from_str::<Config>(&toml_string);
     match config {
-        Ok(mut configs) => {
+        Ok(configs) => {
             let con = configs.repair();
-            match save_config(con, &get_config_file_path()) {
+            match save_config(&con, &get_config_file_path()) {
                 Ok(_) => log::info!("Saved config repaired"),
                 Err(e) => log::error!("{}", e),
             }
@@ -104,6 +104,7 @@ pub struct MusicDl {
     pub crop_cover: Option<bool>,
     pub use_playlist_cover: Option<bool>,
     pub disable_radio: Option<bool>,
+    pub keep_lrc: Option<bool>,
 }
 impl Default for Config {
     fn default() -> Self {
@@ -134,70 +135,65 @@ impl Default for Config {
                 crop_cover: Some(true),
                 use_playlist_cover: Some(true),
                 disable_radio: Some(true),
+                keep_lrc: Some(false),
             },
         }
     }
 }
 
 impl Config {
-    fn repair(&mut self) -> &mut Config {
-        if self.universal.language.is_none() {
-            self.universal.language = Config::default().universal.language;
-        }
-        if self.universal.use_cookies.is_none() {
-            self.universal.use_cookies = Config::default().universal.use_cookies;
-        }
-        if self.video_dl.format.is_none() {
-            self.video_dl.format = Config::default().video_dl.format;
-        }
-        if self.video_dl.disable_radio.is_none() {
-            self.video_dl.disable_radio = Config::default().video_dl.disable_radio;
-        }
-        if self.video_dl.subtitle.is_none() {
-            self.video_dl.subtitle = Config::default().video_dl.subtitle;
-        }
-        if self.video_dl.auto_gen_sub.is_none() {
-            self.video_dl.auto_gen_sub = Config::default().video_dl.auto_gen_sub;
-        }
-        if self.video_dl.fragments.is_none() {
-            self.video_dl.fragments = Config::default().video_dl.fragments;
-        }
-        if self.video_dl.resolution.is_none() {
-            self.video_dl.resolution = Config::default().video_dl.resolution;
-        }
-        if self.music_dl.format.is_none() {
-            self.music_dl.format = Config::default().music_dl.format;
-        }
-        if self.music_dl.lyrics.is_none() {
-            self.music_dl.lyrics = Config::default().music_dl.lyrics;
-        }
-        if self.music_dl.auto_gen_sub.is_none() {
-            self.music_dl.auto_gen_sub = Config::default().music_dl.auto_gen_sub;
-        }
-        if self.music_dl.liblrc.is_none() {
-            self.music_dl.liblrc = Config::default().music_dl.liblrc;
-        }
-        if self.music_dl.kugou_lyrics.is_none() {
-            self.music_dl.kugou_lyrics = Config::default().music_dl.kugou_lyrics;
-        }
-        if self.music_dl.musicbrainz.is_none() {
-            self.music_dl.musicbrainz = Config::default().music_dl.musicbrainz;
-        }
-        if self.music_dl.threshold.is_none() {
-            self.music_dl.threshold = Config::default().music_dl.threshold;
-        }
-        if self.music_dl.fragments.is_none() {
-            self.music_dl.fragments = Config::default().music_dl.fragments;
-        }
-        if self.music_dl.crop_cover.is_none() {
-            self.music_dl.crop_cover = Config::default().music_dl.crop_cover;
-        }
-        if self.music_dl.use_playlist_cover.is_none() {
-            self.music_dl.use_playlist_cover = Config::default().music_dl.use_playlist_cover;
-        }
-        if self.music_dl.disable_radio.is_none() {
-            self.music_dl.disable_radio = Config::default().music_dl.disable_radio;
-        }
+    fn repair(mut self) -> Self {
+        let default = Config::default();
+
+        self.universal.language = self.universal.language.or(default.universal.language);
+
+        self.universal.use_cookies = self.universal.use_cookies.or(default.universal.use_cookies);
+
+        self.video_dl.format = self.video_dl.format.or(default.video_dl.format);
+
+        self.video_dl.disable_radio = self
+            .video_dl
+            .disable_radio
+            .or(default.video_dl.disable_radio);
+
+        self.video_dl.subtitle = self.video_dl.subtitle.or(default.video_dl.subtitle);
+
+        self.video_dl.auto_gen_sub = self.video_dl.auto_gen_sub.or(default.video_dl.auto_gen_sub);
+
+        self.video_dl.fragments = self.video_dl.fragments.or(default.video_dl.fragments);
+
+        self.video_dl.resolution = self.video_dl.resolution.or(default.video_dl.resolution);
+
+        self.music_dl.format = self.music_dl.format.or(default.music_dl.format);
+
+        self.music_dl.lyrics = self.music_dl.lyrics.or(default.music_dl.lyrics);
+
+        self.music_dl.auto_gen_sub = self.music_dl.auto_gen_sub.or(default.music_dl.auto_gen_sub);
+
+        self.music_dl.liblrc = self.music_dl.liblrc.or(default.music_dl.liblrc);
+
+        self.music_dl.kugou_lyrics = self.music_dl.kugou_lyrics.or(default.music_dl.kugou_lyrics);
+
+        self.music_dl.musicbrainz = self.music_dl.musicbrainz.or(default.music_dl.musicbrainz);
+
+        self.music_dl.threshold = self.music_dl.threshold.or(default.music_dl.threshold);
+
+        self.music_dl.fragments = self.music_dl.fragments.or(default.music_dl.fragments);
+
+        self.music_dl.crop_cover = self.music_dl.crop_cover.or(default.music_dl.crop_cover);
+
+        self.music_dl.use_playlist_cover = self
+            .music_dl
+            .use_playlist_cover
+            .or(default.music_dl.use_playlist_cover);
+
+        self.music_dl.disable_radio = self
+            .music_dl
+            .disable_radio
+            .or(default.music_dl.disable_radio);
+
+        self.music_dl.keep_lrc = self.music_dl.disable_radio.or(default.music_dl.keep_lrc);
+
         self
     }
 }

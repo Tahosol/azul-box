@@ -1,13 +1,15 @@
-use crate::app::cores::{ translate::translate};
+use crate::app::cores::files::change_ext;
+use crate::app::cores::translate::translate;
 use base64::prelude::*;
 use lofty::tag::TagType;
 use lofty::{self, config::WriteOptions, prelude::*, probe::Probe, tag::Tag};
 use serde::Deserialize;
 use std::error::Error;
+use std::fs;
 use std::path::Path;
 
-pub fn get(path: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
-    let mut tagged_file = Probe::open(path)?.read()?;
+pub fn get(musicfile: &Path, lang: &str, keep_lrc: bool) -> Result<(), Box<dyn Error>> {
+    let mut tagged_file = Probe::open(musicfile)?.read()?;
 
     let tag = match tagged_file.primary_tag_mut() {
         Some(primary_tag) => primary_tag,
@@ -32,12 +34,17 @@ pub fn get(path: &Path, lang: &str) -> Result<(), Box<dyn Error>> {
         if let Some(best_match) = info.first() {
             let lyrics = kugou_get_lyrics(&best_match.hash, lang)?;
             if !lyrics.is_empty() {
+                if keep_lrc {
+                    fs::write(change_ext(&musicfile, "lrc"), &lyrics)?;
+                    log::info!("Written lrc file from lrclib");
+                }
+
                 if tag.tag_type() == TagType::Id3v2 {
                     tag.insert_text(ItemKey::UnsyncLyrics, lyrics);
                 } else {
                     tag.insert_text(ItemKey::Lyrics, lyrics);
                 }
-                tag.save_to_path(path, WriteOptions::default())?;
+                tag.save_to_path(musicfile, WriteOptions::default())?;
             }
         }
     }

@@ -114,6 +114,7 @@ pub struct Music {
     pub use_playlist_cover: bool,
     pub sanitize_lyrics: bool,
     pub yt_dlp: PathBuf,
+    pub keep_lrc: bool,
 }
 
 use serde::Deserialize;
@@ -287,16 +288,17 @@ impl Music {
                     self.sanitize_lyrics,
                     &self.lang_code,
                     i.1,
+                    self.keep_lrc,
                 ) {
                     Ok(_) => log::info!("Lyrics from youtube embedded"),
                     Err(e) => log::error!("Fail to use lyrics from youtube: {e}"),
                 }
             }
             if self.lrclib {
-                let _ = lrclib_fetch(&music_file, &self.lang_code);
+                let _ = lrclib_fetch(&music_file, &self.lang_code, self.keep_lrc);
             }
             if self.kugou_lyrics {
-                let _ = kugou::get(&music_file, &self.lang_code);
+                let _ = kugou::get(&music_file, &self.lang_code, self.keep_lrc);
             }
         }
         if let Some(trash_cover) = play {

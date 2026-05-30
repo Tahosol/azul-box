@@ -1,5 +1,5 @@
 use crate::USERAGENT;
-use crate::app::cores::files::file_finder;
+use crate::app::cores::files::{change_ext, file_finder};
 use crate::app::cores::translate::translate;
 use crate::app::cores::ytdlp::Entry;
 
@@ -20,6 +20,7 @@ pub fn work(
     sanitize: bool,
     lang_code: &str,
     potential_lyrics: Option<HashMap<String, Vec<Entry>>>,
+    keep_lrc: bool,
 ) -> Result<(), Box<dyn Error>> {
     let mut lyrics = String::new();
     if let Some(entris) = potential_lyrics {
@@ -87,6 +88,10 @@ pub fn work(
                 }
             }
         };
+        if keep_lrc {
+            fs::write(change_ext(&music_file, "lrc"), &lyrics)?;
+            info!("Written lrc file");
+        }
 
         if tag.tag_type() == TagType::Id3v2 {
             tag.insert_text(ItemKey::UnsyncLyrics, lyrics);

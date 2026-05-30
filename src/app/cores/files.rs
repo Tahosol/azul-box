@@ -1,6 +1,12 @@
 use std::fs;
 use std::path::PathBuf;
 
+pub fn change_ext<P: Into<PathBuf>>(path: P, new_ext: &str) -> PathBuf {
+    let mut p = path.into();
+    p.set_extension(new_ext);
+    p
+}
+
 pub fn file_finder(directory: &str, filename: &str, matchs: &[&str]) -> Option<PathBuf> {
     let elements = fs::read_dir(&directory).ok()?;
 

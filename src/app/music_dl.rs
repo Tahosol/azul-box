@@ -35,6 +35,7 @@ pub struct MusicDownload {
     pub sanitize_lyrics: bool,
     pub url_status: UrlStatus,
     pub disable_radio: bool,
+    pub keep_lrc: bool,
     error_message: Arc<Mutex<String>>,
 }
 
@@ -75,6 +76,7 @@ impl Default for MusicDownload {
             sanitize_lyrics: false,
             url_status: UrlStatus::None,
             disable_radio: configs.music_dl.disable_radio.unwrap(),
+            keep_lrc: configs.music_dl.keep_lrc.unwrap(),
             error_message: Arc::new(Mutex::new(String::new())),
         }
     }
@@ -332,6 +334,22 @@ impl MusicDownload {
                             }
                         }
                     }
+                    ui.separator();
+                    let save_lrc = ui.checkbox(&mut self.keep_lrc, "Keep lrc").on_hover_text(
+                        "Save a lrc file for lyrics while still embed lyrics as usual",
+                    );
+                    if save_lrc.changed() {
+                        match config::modifier_config(&self.config_path, |cfg| {
+                            cfg.music_dl.keep_lrc = Some(self.keep_lrc)
+                        }) {
+                            Ok(_) => {
+                                log::info!("Changed lrc behavior");
+                            }
+                            Err(e) => {
+                                log::error!("Fail change lrc behavior {e}");
+                            }
+                        }
+                    }
                 });
                 self.music_brainz_button(ui);
 
@@ -415,6 +433,7 @@ impl MusicDownload {
                     let yt_dlp_path = depen.yt_dlp.clone();
                     let kugou = self.kugou_lyrics;
                     let error_message_clone = Arc::clone(&self.error_message);
+                    let keep_lrc_clone = self.keep_lrc.clone();
 
                     tokio::task::spawn(async move {
                         let yt = ytdlp::Music {
@@ -435,6 +454,7 @@ impl MusicDownload {
                             use_playlist_cover: playlist_cover,
                             sanitize_lyrics: sanitization,
                             yt_dlp: yt_dlp_path,
+                            keep_lrc: keep_lrc_clone,
                         };
                         match yt.download() {
                             Ok(f) => {
