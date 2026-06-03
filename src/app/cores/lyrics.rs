@@ -106,7 +106,7 @@ pub fn work(
     Ok(())
 }
 
-use std::fmt;
+use std::fmt::{self, format};
 
 use regex::Regex;
 
@@ -276,20 +276,27 @@ fn collect_time_stamp(lyrics: &str) -> Result<Vec<String>, Box<dyn Error>> {
 //May need to clean this code later
 fn vtt_to_lrc(str: String) -> String {
     let mut lrc: Vec<LrcLine> = Vec::new();
-    let mut string: Option<&str> = None;
+    let mut time: Option<&str> = None;
+    let mut current_time_is_unused = false;
     for (_, st) in str.lines().enumerate() {
         if st.contains("-->") {
-            string = st.split("-->").nth(0);
-        } else if let Some(time) = string {
-            let time: Vec<&str> = time.split(":").collect();
-            lrc.push(LrcLine {
-                timestamp: TimeStamp {
-                    minutes: time[1].trim().parse().unwrap(),
-                    seconds: time[2].trim().parse().unwrap(),
-                },
-                content: st.to_string(),
-            });
-            string = None;
+            time = st.split("-->").nth(0);
+            current_time_is_unused = true;
+        } else if let Some(time) = time {
+            if current_time_is_unused {
+                let time: Vec<&str> = time.split(":").collect();
+                lrc.push(LrcLine {
+                    timestamp: TimeStamp {
+                        minutes: time[1].trim().parse().unwrap(),
+                        seconds: time[2].trim().parse().unwrap(),
+                    },
+                    content: st.to_string(),
+                });
+                current_time_is_unused = false;
+            } else if !st.is_empty() {
+                let index = lrc.len() - 1;
+                lrc[index].content = format!("{} {st}", lrc[lrc.len() - 1].content);
+            }
         }
     }
     return lrc
