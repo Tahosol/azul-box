@@ -192,7 +192,7 @@ impl Config {
             .disable_radio
             .or(default.music_dl.disable_radio);
 
-        self.music_dl.keep_lrc = self.music_dl.disable_radio.or(default.music_dl.keep_lrc);
+        self.music_dl.keep_lrc = self.music_dl.keep_lrc.or(default.music_dl.keep_lrc);
 
         self
     }
