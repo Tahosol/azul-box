@@ -1,4 +1,5 @@
 use crate::app::cores::depen_manager::{Depen, get_path};
+use crate::app::cores::files::file_finder;
 use crate::app::cores::lrclib::lrclib_fetch;
 use crate::app::cores::{kugou, musicbrainz, url_checker};
 use std::collections::HashMap;
@@ -122,7 +123,7 @@ use serde::Deserialize;
 pub struct InfoJson {
     #[serde(rename = "_type")]
     pub filetype: String,
-    pub title: String,
+    // pub title: String,
     pub subtitles: Option<HashMap<String, Vec<Entry>>>,
 }
 #[derive(Debug, Deserialize)]
@@ -151,7 +152,7 @@ pub fn get_all_music_title_and_playlist(
         {
             if let Ok(infojson) = serde_json::from_str::<InfoJson>(&fs::read_to_string(&item)?) {
                 if infojson.filetype == "playlist" {
-                    playlist = Some(infojson.title);
+                    playlist = Some(file.trim_end_matches(".info.json").to_string());
                 } else {
                     titles.insert(
                         file.trim_end_matches(".info.json").to_string(),
@@ -302,12 +303,9 @@ impl Music {
             }
         }
         if let Some(trash_cover) = play {
-            let _ = std::fs::remove_file(
-                Path::new(&self.directory).join(format!("playlist{trash_cover}.png")),
-            );
-            let _ = std::fs::remove_file(
-                Path::new(&self.directory).join(format!("playlist{trash_cover}.jpg")),
-            );
+            let trash = file_finder(&self.directory, &trash_cover, &["png", "jpg"]).unwrap();
+            let _ = std::fs::remove_file(&trash);
+            dbg!(trash);
         }
         if output.status.success() {
             log::warn!("{}", String::from_utf8_lossy(&output.stderr));

@@ -57,11 +57,7 @@ pub fn embed(
     if let Some(name) = playlist_name
         && playlist_cover
     {
-        match file_finder(
-            directory,
-            &format!("playlist{name}"),
-            &["jpg", "jpeg", "png"],
-        ) {
+        match file_finder(directory, &name, &["jpg", "jpeg", "png"]) {
             Some(raw_image) => {
                 let png = raw_image.with_extension("png");
                 log::info!("Cover report raw_image: {raw_image:?}");
