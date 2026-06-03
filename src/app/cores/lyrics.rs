@@ -106,7 +106,7 @@ pub fn work(
     Ok(())
 }
 
-use std::fmt::{self, format};
+use std::fmt;
 
 use regex::Regex;
 
