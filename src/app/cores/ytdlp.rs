@@ -94,7 +94,7 @@ pub fn video_download(
         Err(String::from_utf8_lossy(&output.stderr).into())
     }
 }
-use crate::app::cores::cover;
+use crate::app::cores::cover::{self, square_crop_to_bytes, to_png_bytes};
 use crate::app::cores::lyrics;
 
 pub struct Music {
@@ -253,6 +253,22 @@ impl Music {
             get_all_music_title_and_playlist(Path::new(&self.directory))?;
 
         let mut filenames = "".to_string();
+        let mut album_cover: Option<Vec<u8>> = None;
+
+        if self.use_playlist_cover
+            && let Some(name) = &play
+        {
+            match file_finder(&self.directory, &name, &["jpg", "jpeg", "png"]) {
+                Some(raw_image) => {
+                    album_cover = if self.crop_cover {
+                        Some(square_crop_to_bytes(&raw_image)?)
+                    } else {
+                        Some(to_png_bytes(&raw_image)?)
+                    };
+                }
+                None => {}
+            }
+        }
         for i in filenames_from_json_info {
             let extension = format!(".{}", format_name);
             let filename = i.0;
@@ -267,11 +283,10 @@ impl Music {
 
             match cover::embed(
                 self.crop_cover,
-                self.use_playlist_cover,
                 &music_file,
                 &self.directory,
                 &filename,
-                &play,
+                &album_cover,
             ) {
                 Ok(_) => log::info!("embedded cover"),
                 Err(e) => log::error!("embed cover fail: {e}"),
@@ -302,10 +317,11 @@ impl Music {
                 let _ = kugou::get(&music_file, &self.lang_code, self.keep_lrc);
             }
         }
-        if let Some(trash_cover) = play {
-            let trash = file_finder(&self.directory, &trash_cover, &["png", "jpg"]).unwrap();
+        if !self.use_playlist_cover
+            && let Some(trash_cover) = play
+        {
+            let trash = file_finder(&self.directory, &trash_cover, &["jpg"]).unwrap();
             let _ = std::fs::remove_file(&trash);
-            dbg!(trash);
         }
         if output.status.success() {
             log::warn!("{}", String::from_utf8_lossy(&output.stderr));

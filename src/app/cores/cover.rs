@@ -4,10 +4,10 @@ use image::error::ImageError;
 use image::{GenericImageView, ImageReader};
 use std::path::Path;
 
-fn square_crop_to_png(path: &Path) -> Result<(), ImageError> {
+pub fn square_crop_to_bytes(path: &Path) -> Result<Vec<u8>, ImageError> {
     let img = ImageReader::open(path)?.with_guessed_format()?.decode()?;
     let (width, height) = img.dimensions();
-    let png_path = path.with_extension("png");
+    let mut buf = Vec::new();
 
     let final_img = if width != height {
         log::info!("crop report: start crop");
@@ -20,67 +20,42 @@ fn square_crop_to_png(path: &Path) -> Result<(), ImageError> {
         img
     };
 
-    final_img.save_with_format(&png_path, image::ImageFormat::Png)?;
+    final_img.write_to(&mut Cursor::new(&mut buf), image::ImageFormat::Png)?;
 
-    if path != png_path {
-        std::fs::remove_file(path)?;
-    }
+    std::fs::remove_file(path)?;
 
-    Ok(())
+    Ok(buf)
 }
 
-fn to_png(path: &Path) -> Result<(), ImageError> {
-    if path.extension().and_then(|x| x.to_str()) != Some("png") {
-        let img = ImageReader::open(path)?.with_guessed_format()?.decode()?;
-        let png_path = path.with_extension("png");
-
-        img.save_with_format(&png_path, image::ImageFormat::Png)?;
-        if path != png_path {
-            std::fs::remove_file(path)?;
-        }
-    }
-    Ok(())
+pub fn to_png_bytes(path: &Path) -> Result<Vec<u8>, ImageError> {
+    let img = ImageReader::open(path)?.with_guessed_format()?.decode()?;
+    let mut buf = Vec::new();
+    img.write_to(&mut Cursor::new(&mut buf), image::ImageFormat::Png)?;
+    std::fs::remove_file(path)?;
+    Ok(buf)
 }
 
 pub fn embed(
     crop: bool,
-    playlist_cover: bool,
     musicfile: &Path,
     directory: &str,
     filename: &str,
-    playlist_name: &Option<String>,
+    playlist: &Option<Vec<u8>>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let single_cover = match file_finder(directory, filename, &["webp"]) {
         Some(single_cover) => single_cover,
         None => return Err("No Cover of Music Found".into()),
     };
-    if let Some(name) = playlist_name
-        && playlist_cover
-    {
-        match file_finder(directory, &name, &["jpg", "jpeg", "png"]) {
-            Some(raw_image) => {
-                let png = raw_image.with_extension("png");
-                log::info!("Cover report raw_image: {raw_image:?}");
-                if crop {
-                    square_crop_to_png(&raw_image)?
-                } else {
-                    to_png(&raw_image)?;
-                }
-                log::info!("Cover report png: {png:?}");
-                embed_img_internal(&png, musicfile)?;
-                std::fs::remove_file(single_cover)?;
-            }
-            None => return Err("No Cover of Playlist Found".into()),
-        }
+    if let Some(cover) = playlist {
+        embed_img_internal(cover, musicfile)?;
+        std::fs::remove_file(single_cover)?;
     } else {
-        let png = single_cover.with_extension("png");
-        if crop {
-            square_crop_to_png(&single_cover)?
+        let cover = if crop {
+            square_crop_to_bytes(&single_cover)?
         } else {
-            to_png(&single_cover)?;
-        }
-        embed_img_internal(&png, musicfile)?;
-        std::fs::remove_file(png)?;
+            to_png_bytes(&single_cover)?
+        };
+        embed_img_internal(&cover, musicfile)?;
     }
     Ok(())
 }
@@ -90,12 +65,10 @@ use lofty::picture::{Picture, PictureType};
 use lofty::prelude::*;
 use lofty::probe::Probe;
 use lofty::tag::Tag;
-use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufReader, Cursor};
 
-fn embed_img_internal(cover: &Path, musicfile: &Path) -> Result<(), lofty::error::LoftyError> {
-    let f = File::open(cover)?;
-    let mut reader = BufReader::new(f);
+fn embed_img_internal(cover: &Vec<u8>, musicfile: &Path) -> Result<(), lofty::error::LoftyError> {
+    let mut reader = BufReader::new(Cursor::new(cover));
     let mut tagged_file = Probe::open(musicfile)?.read()?;
 
     let tag = match tagged_file.primary_tag_mut() {
