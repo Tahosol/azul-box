@@ -11,24 +11,24 @@ repository = "https://codeberg.org/Tahoso/azul-box"
 
 
 [dependencies]
-base64 = "0.22.1"
+base64 = "0.23.0"
 dirs = "6.0.0"
-eframe = "0.34.2"
+eframe = "0.35.0"
 ftail = "0.3.1"
 image = {version ="0.25.10", default-features = false, features = ["rayon","png","webp","jpeg"]}
 lofty = {version = "0.24.0", default-features = false}
-log = "0.4.29"
-regex = "1.12.3"
+log = "0.4.33"
+regex = "1.13.1"
 rfd = "0.17.2"
 rodio = {version ="0.22.2", default-features = false, features = ["vorbis","playback"] }
-serde = { version = "1.0.228", default-features = false, features = ["derive"] }
-serde_json = "1.0.149"
+serde = { version = "1.0.229", default-features = false, features = ["derive"] }
+serde_json = "1.0.151"
 textdistance = "1.1.1"
-tokio = { version = "1.51.3", features = ["macros", "rt-multi-thread"] }
-toml = "1.0.7"
+tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread"] }
+toml = "1.1.3"
 ureq = { version = "3.3.0", features = ["json"] }
 url = "2.5.8"
-zip = {version = "8.3.1", default-features = false, features = ["bzip2","deflate"] }
+zip = {version = "8.6.0", default-features = false, features = ["bzip2","deflate"] }
 
 [profile.release]
 strip = true

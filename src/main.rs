@@ -174,7 +174,7 @@ impl eframe::App for MainApp {
             self.run_on_start = true;
         };
 
-        egui::Panel::top("top_panel").show_inside(ui, |ui| {
+        egui::Panel::top("top_panel").show(ui, |ui| {
             ui.vertical_centered_justified(|ui| {
                 ui.heading("Azul Box");
                 ui.horizontal_wrapped(|ui| {
@@ -295,7 +295,7 @@ impl eframe::App for MainApp {
             egui::Panel::left("Panel")
                 .resizable(true)
                 .size_range(50.0..=100.0)
-                .show_inside(ui, |ui| {
+                .show(ui, |ui| {
                     ui.add(egui::Checkbox::new(
                         &mut self.yt,
                         egui::RichText::new("yt-dl").size(17.0),
@@ -341,9 +341,9 @@ impl eframe::App for MainApp {
                         self.ffmpeg_ui.ui(ui, &self.app_data);
                     });
             }
-            egui::CentralPanel::default().show_inside(ui, |ui| ui.label(""));
+            egui::CentralPanel::default().show(ui, |ui| ui.label(""));
         } else {
-            egui::CentralPanel::default().show_inside(ui, |ui| {
+            egui::CentralPanel::default().show(ui, |ui| {
                 ui.spinner();
                 ui.label("Downloading dependencies");
                 file_status(ui, &self.app_data.deno_zip);
