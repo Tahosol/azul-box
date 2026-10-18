@@ -61,7 +61,7 @@ fn fetch_musicbrainzapi(
         .get(q)
         .header(
             "User-Agent",
-            "Azulbox (https://github.com/tahosol/azul-box)",
+            "Azulbox (https://codeberg.org/Tahoso/azul-box)",
         )
         .call()?
         .body_mut()
@@ -80,7 +80,7 @@ fn fetch_musicbrainzapi(
             .get(query_with_id)
             .header(
                 "User-Agent",
-                "Azulbox (https://github.com/tahosol/azul-box)",
+                "Azulbox (https://codeberg.org/Tahoso/azul-box)",
             )
             .call()?;
         let data = re_for_id.body_mut().read_json::<IDAPI>()?;
@@ -133,7 +133,7 @@ fn fetch_musicbrainzapi(
                     .get(que)
                     .header(
                         "User-Agent",
-                        "Azulbox (https://github.com/tahosol/azul-box)",
+                        "Azulbox (https://codeberg.org/Tahoso/azul-box)",
                     )
                     .call()?;
                 let callfocover = res.body_mut().read_json::<ApiResponseCover>()?;
@@ -143,7 +143,7 @@ fn fetch_musicbrainzapi(
                         .get(&images[0].image)
                         .header(
                             "User-Agent",
-                            "Azulbox (https://github.com/tahosol/azul-box)",
+                            "Azulbox (https://codeberg.org/Tahoso/azul-box)",
                         )
                         .call()?;
                     let data: Vec<u8> = img_req.into_body().read_to_vec()?;

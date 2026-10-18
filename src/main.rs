@@ -369,7 +369,7 @@ fn file_status(ui: &mut Ui, file: &Path) {
 
         Err(_) => {
             if let Some(f) = file.file_name().and_then(|f| f.to_str()) {
-                ui.label(egui::RichText::new(format!("{f}: Checking")).color(Color32::LIGHT_BLUE));
+                ui.label(egui::RichText::new(format!("{f}: Fetching")).color(Color32::LIGHT_BLUE));
             }
         }
     }
