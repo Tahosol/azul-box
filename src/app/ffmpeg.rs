@@ -162,7 +162,9 @@ impl Ffmpeg {
                                 )
                                 .on_hover_text("Bigger is more compression");
                             }
-                        } else if VIDEO_FORMAT.contains(&self.format_out.as_ref()) {
+                        } else if VIDEO_FORMAT.contains(&self.format_out.as_ref())
+                            && !IMAGE_FORMAT.contains(&self.format_out.as_ref())
+                        {
                             self.toggle_compression(
                                 ui,
                                 "libx264 compression",
@@ -189,6 +191,8 @@ impl Ffmpeg {
                                 )
                                 .on_hover_text("smaller is lower quality and more compression");
                             }
+                        } else {
+                            ui.label("NONE");
                         }
                     });
                     if !AUDIO_FORMAT.contains(&self.format_in.as_str())
