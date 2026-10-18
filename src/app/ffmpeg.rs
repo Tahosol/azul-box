@@ -96,7 +96,7 @@ impl Ffmpeg {
             egui::containers::menu::MenuButton::new("Configure output")
                 .config(
                     egui::containers::menu::MenuConfig::new()
-                        .close_behavior(egui::PopupCloseBehavior::IgnoreClicks),
+                        .close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside),
                 )
                 .ui(ui, |ui| {
                     ui.horizontal_wrapped(|ui| {

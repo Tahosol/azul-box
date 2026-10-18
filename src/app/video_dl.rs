@@ -172,7 +172,7 @@ impl VideoDownload {
             egui::containers::menu::MenuButton::new("Setting")
                 .config(
                     egui::containers::menu::MenuConfig::new()
-                        .close_behavior(egui::PopupCloseBehavior::IgnoreClicks),
+                        .close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside),
                 )
                 .ui(ui, |ui| {
                 ui.menu_button("cookies", |ui| {
