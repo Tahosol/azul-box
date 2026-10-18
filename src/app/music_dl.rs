@@ -198,182 +198,184 @@ impl MusicDownload {
             self.lyrics = false;
         }
         ui.horizontal(|ui| {
-            egui::containers::menu::MenuButton::new("Setting")
+            egui::containers::menu::MenuButton::new("Configure output")
                 .config(
                     egui::containers::menu::MenuConfig::new()
                         .close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside),
                 )
                 .ui(ui, |ui| {
-                ui.menu_button("cookies", |ui| {
-                    let check = ui.checkbox(&mut self.use_cookies, "Use cookies");
-                    if check.changed() {
+                    ui.menu_button("cookies", |ui| {
+                        let check = ui.checkbox(&mut self.use_cookies, "Use cookies");
+                        if check.changed() {
+                            match config::modifier_config(&self.config_path, |cfg| {
+                                cfg.universal.use_cookies = Some(self.use_cookies)
+                            }) {
+                                Ok(_) => {
+                                    log::info!("Cookie usage successfully changed");
+                                }
+                                Err(e) => {
+                                    log::error!("Fail change use_cookies {e}");
+                                }
+                            }
+                        }
+                        if ui.button("Cookie directory").clicked() {
+                            let path = FileDialog::new()
+                                .set_directory(&self.out_directory)
+                                .add_filter("cookies.txt", &["txt"])
+                                .pick_file();
+
+                            if let Some(p) = path {
+                                self.cookies = Some(p.to_string_lossy().into_owned());
+                            } else {
+                                log::info!("No file was selected.");
+                            }
+                        }
+                    });
+                    let radio_toggle = ui.toggle_value(&mut self.disable_radio, "Disable radio");
+                    if radio_toggle.changed() {
                         match config::modifier_config(&self.config_path, |cfg| {
-                            cfg.universal.use_cookies = Some(self.use_cookies)
+                            cfg.music_dl.disable_radio = Some(self.disable_radio)
                         }) {
                             Ok(_) => {
-                                log::info!("Cookie usage successfully changed");
+                                log::info!("Changed disable_radio");
                             }
                             Err(e) => {
-                                log::error!("Fail change use_cookies {e}");
+                                log::error!("Fail change disable_radio {e}");
                             }
                         }
                     }
-                    if ui.button("Cookie directory").clicked() {
-                        let path = FileDialog::new()
-                            .set_directory(&self.out_directory)
-                            .add_filter("cookies.txt", &["txt"])
-                            .pick_file();
+                    ui.menu_button("Cover", |ui| {
+                        let check_1 = ui
+                            .checkbox(&mut self.use_playlist_cover, "Use playlist cover")
+                            .on_hover_text(
+                                "Use the playlist cover from youtube as cover for the music file",
+                            );
+                        if check_1.changed() {
+                            match config::modifier_config(&self.config_path, |cfg| {
+                                cfg.music_dl.use_playlist_cover = Some(self.use_playlist_cover)
+                            }) {
+                                Ok(_) => {
+                                    log::info!("Changed use_playlist_cover");
+                                }
+                                Err(e) => {
+                                    log::error!("Fail change use_playlist_cover {e}");
+                                }
+                            }
+                        }
+                        let check_2 = ui.checkbox(&mut self.crop_cover, "Crop cover to 1:1");
+                        if check_2.changed() {
+                            match config::modifier_config(&self.config_path, |cfg| {
+                                cfg.music_dl.crop_cover = Some(self.crop_cover)
+                            }) {
+                                Ok(_) => {
+                                    log::info!("Changed crop_cover");
+                                }
+                                Err(e) => {
+                                    log::error!("Fail change Crop cover {e}");
+                                }
+                            }
+                        }
+                    });
+                    ui.menu_button("Format", |ui| {
+                        self.format_button(ui, "OPUS", 1);
+                        self.format_button(ui, "FLAC", 2);
+                        self.format_button(ui, "MP3", 3);
+                        self.format_button(ui, "M4A", 4);
+                        self.format_button(ui, "WAV", 5);
+                    });
+                    ui.menu_button("Lyrics", |ui| {
+                        let lang_in = self.sub_lang.clone();
+                        self.sub_lang = LangThing::lang_chooser(ui, lang_in);
 
-                        if let Some(p) = path {
-                            self.cookies = Some(p.to_string_lossy().into_owned());
-                        } else {
-                            log::info!("No file was selected.");
+                        ui.separator();
+
+                        let youtube_lyrics = ui
+                            .checkbox(&mut self.lyrics, "youtube lyrics")
+                            .on_hover_text(
+                                "Enable YouTube subtitle lyrics and automatic translation",
+                            );
+                        if youtube_lyrics.changed() {
+                            match config::modifier_config(&self.config_path, |cfg| {
+                                cfg.music_dl.lyrics = Some(self.lyrics)
+                            }) {
+                                Ok(_) => {
+                                    log::info!("Changed yt lyrics");
+                                }
+                                Err(e) => {
+                                    log::error!("Fail change yt lyrics {e}");
+                                }
+                            }
                         }
-                    }
-                });
-                let radio_toggle = ui.toggle_value(&mut self.disable_radio, "Disable radio");
-                if radio_toggle.changed() {
-                    match config::modifier_config(&self.config_path, |cfg| {
-                        cfg.music_dl.disable_radio = Some(self.disable_radio)
-                    }) {
-                        Ok(_) => {
-                            log::info!("Changed disable_radio");
+                        if self.lyrics {
+                            ui.toggle_value(&mut self.sanitize_lyrics, "Sanitization")
+                                .on_hover_text("sanitize the lyrics from youtube");
+                            self.auto_on(ui);
                         }
-                        Err(e) => {
-                            log::error!("Fail change disable_radio {e}");
+
+                        ui.separator();
+
+                        let check = ui.checkbox(&mut self.lrclib, "Lrclib lyrics");
+                        if check.changed() {
+                            match config::modifier_config(&self.config_path, |cfg| {
+                                cfg.music_dl.liblrc = Some(self.lrclib)
+                            }) {
+                                Ok(_) => {
+                                    log::info!("Changed Liblrc");
+                                }
+                                Err(e) => {
+                                    log::error!("Fail change Liblrc {e}");
+                                }
+                            }
                         }
-                    }
-                }
-                ui.menu_button("Cover", |ui| {
-                    let check_1 = ui
-                        .checkbox(&mut self.use_playlist_cover, "Use playlist cover")
-                        .on_hover_text(
-                            "Use the playlist cover from youtube as cover for the music file",
+                        ui.separator();
+                        let kugou = ui.checkbox(&mut self.kugou_lyrics, "kugou lyrics");
+                        if kugou.changed() {
+                            match config::modifier_config(&self.config_path, |cfg| {
+                                cfg.music_dl.kugou_lyrics = Some(self.kugou_lyrics)
+                            }) {
+                                Ok(_) => {
+                                    log::info!("Changed kugou");
+                                }
+                                Err(e) => {
+                                    log::error!("Fail change kugou {e}");
+                                }
+                            }
+                        }
+                        ui.separator();
+                        let save_lrc = ui.checkbox(&mut self.keep_lrc, "Keep lrc").on_hover_text(
+                            "Save a lrc file for lyrics while still embed lyrics as usual",
                         );
-                    if check_1.changed() {
-                        match config::modifier_config(&self.config_path, |cfg| {
-                            cfg.music_dl.use_playlist_cover = Some(self.use_playlist_cover)
-                        }) {
-                            Ok(_) => {
-                                log::info!("Changed use_playlist_cover");
-                            }
-                            Err(e) => {
-                                log::error!("Fail change use_playlist_cover {e}");
-                            }
-                        }
-                    }
-                    let check_2 = ui.checkbox(&mut self.crop_cover, "Crop cover to 1:1");
-                    if check_2.changed() {
-                        match config::modifier_config(&self.config_path, |cfg| {
-                            cfg.music_dl.crop_cover = Some(self.crop_cover)
-                        }) {
-                            Ok(_) => {
-                                log::info!("Changed crop_cover");
-                            }
-                            Err(e) => {
-                                log::error!("Fail change Crop cover {e}");
+                        if save_lrc.changed() {
+                            match config::modifier_config(&self.config_path, |cfg| {
+                                cfg.music_dl.keep_lrc = Some(self.keep_lrc)
+                            }) {
+                                Ok(_) => {
+                                    log::info!("Changed lrc behavior");
+                                }
+                                Err(e) => {
+                                    log::error!("Fail change lrc behavior {e}");
+                                }
                             }
                         }
-                    }
-                });
-                ui.menu_button("Format", |ui| {
-                    self.format_button(ui, "OPUS", 1);
-                    self.format_button(ui, "FLAC", 2);
-                    self.format_button(ui, "MP3", 3);
-                    self.format_button(ui, "M4A", 4);
-                    self.format_button(ui, "WAV", 5);
-                });
-                ui.menu_button("Lyrics", |ui| {
-                    let lang_in = self.sub_lang.clone();
-                    self.sub_lang = LangThing::lang_chooser(ui, lang_in);
+                    });
+                    self.music_brainz_button(ui);
 
-                    ui.separator();
-
-                    let youtube_lyrics = ui
-                        .checkbox(&mut self.lyrics, "youtube lyrics")
-                        .on_hover_text("Enable YouTube subtitle lyrics and automatic translation");
-                    if youtube_lyrics.changed() {
-                        match config::modifier_config(&self.config_path, |cfg| {
-                            cfg.music_dl.lyrics = Some(self.lyrics)
-                        }) {
-                            Ok(_) => {
-                                log::info!("Changed yt lyrics");
-                            }
-                            Err(e) => {
-                                log::error!("Fail change yt lyrics {e}");
-                            }
-                        }
-                    }
-                    if self.lyrics {
-                        ui.toggle_value(&mut self.sanitize_lyrics, "Sanitization")
-                            .on_hover_text("sanitize the lyrics from youtube");
-                        self.auto_on(ui);
-                    }
-
-                    ui.separator();
-
-                    let check = ui.checkbox(&mut self.lrclib, "Lrclib lyrics");
+                    let check = ui
+                        .add(egui::widgets::Slider::new(&mut self.frag, 1..=10).text("Fragments"));
                     if check.changed() {
                         match config::modifier_config(&self.config_path, |cfg| {
-                            cfg.music_dl.liblrc = Some(self.lrclib)
+                            cfg.music_dl.fragments = Some(self.frag)
                         }) {
                             Ok(_) => {
-                                log::info!("Changed Liblrc");
+                                log::info!("Changed frag");
                             }
                             Err(e) => {
-                                log::error!("Fail change Liblrc {e}");
+                                log::error!("Fail frag {e}");
                             }
                         }
                     }
-                    ui.separator();
-                    let kugou = ui.checkbox(&mut self.kugou_lyrics, "kugou lyrics");
-                    if kugou.changed() {
-                        match config::modifier_config(&self.config_path, |cfg| {
-                            cfg.music_dl.kugou_lyrics = Some(self.kugou_lyrics)
-                        }) {
-                            Ok(_) => {
-                                log::info!("Changed kugou");
-                            }
-                            Err(e) => {
-                                log::error!("Fail change kugou {e}");
-                            }
-                        }
-                    }
-                    ui.separator();
-                    let save_lrc = ui.checkbox(&mut self.keep_lrc, "Keep lrc").on_hover_text(
-                        "Save a lrc file for lyrics while still embed lyrics as usual",
-                    );
-                    if save_lrc.changed() {
-                        match config::modifier_config(&self.config_path, |cfg| {
-                            cfg.music_dl.keep_lrc = Some(self.keep_lrc)
-                        }) {
-                            Ok(_) => {
-                                log::info!("Changed lrc behavior");
-                            }
-                            Err(e) => {
-                                log::error!("Fail change lrc behavior {e}");
-                            }
-                        }
-                    }
+                    if ui.button("Close").clicked() {}
                 });
-                self.music_brainz_button(ui);
-
-                let check =
-                    ui.add(egui::widgets::Slider::new(&mut self.frag, 1..=10).text("Fragments"));
-                if check.changed() {
-                    match config::modifier_config(&self.config_path, |cfg| {
-                        cfg.music_dl.fragments = Some(self.frag)
-                    }) {
-                        Ok(_) => {
-                            log::info!("Changed frag");
-                        }
-                        Err(e) => {
-                            log::error!("Fail frag {e}");
-                        }
-                    }
-                }
-                if ui.button("Close").clicked() {}
-            });
             ui.label("Status: ");
             if self.status.load(Ordering::Relaxed) == 1 {
                 ui.spinner();

@@ -169,124 +169,124 @@ impl VideoDownload {
     }
     pub fn ui(&mut self, ui: &mut egui::Ui, depen: &Depen) {
         ui.horizontal(|ui| {
-            egui::containers::menu::MenuButton::new("Setting")
+            egui::containers::menu::MenuButton::new("Configure output")
                 .config(
                     egui::containers::menu::MenuConfig::new()
                         .close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside),
                 )
                 .ui(ui, |ui| {
-                ui.menu_button("cookies", |ui| {
-                    let check = ui.checkbox(&mut self.use_cookies, "Use cookies");
-                    if check.changed() {
+                    ui.menu_button("cookies", |ui| {
+                        let check = ui.checkbox(&mut self.use_cookies, "Use cookies");
+                        if check.changed() {
+                            match config::modifier_config(&self.config_path, |cfg| {
+                                cfg.universal.use_cookies = Some(self.use_cookies)
+                            }) {
+                                Ok(_) => {
+                                    log::info!("Cookie usage successfully changed");
+                                }
+                                Err(e) => {
+                                    log::error!("Fail change use_cookies {e}");
+                                }
+                            }
+                        }
+                        if ui.button("Cookie directory").clicked() {
+                            let path = FileDialog::new()
+                                .set_directory(&self.out_directory)
+                                .add_filter("cookies.txt", &["txt"])
+                                .pick_file();
+
+                            if let Some(p) = path {
+                                self.cookies = Some(p.to_string_lossy().into_owned());
+                            } else {
+                                log::info!("No file was selected.");
+                            }
+                        }
+                    });
+
+                    let radio_toggle = ui.toggle_value(&mut self.disable_radio, "Disable radio");
+                    if radio_toggle.changed() {
                         match config::modifier_config(&self.config_path, |cfg| {
-                            cfg.universal.use_cookies = Some(self.use_cookies)
+                            cfg.video_dl.disable_radio = Some(self.disable_radio)
                         }) {
                             Ok(_) => {
-                                log::info!("Cookie usage successfully changed");
+                                log::info!("Changed disable_radio");
                             }
                             Err(e) => {
-                                log::error!("Fail change use_cookies {e}");
+                                log::error!("Fail change disable_radio {e}");
                             }
                         }
                     }
-                    if ui.button("Cookie directory").clicked() {
-                        let path = FileDialog::new()
-                            .set_directory(&self.out_directory)
-                            .add_filter("cookies.txt", &["txt"])
-                            .pick_file();
-
-                        if let Some(p) = path {
-                            self.cookies = Some(p.to_string_lossy().into_owned());
+                    ui.menu_button("Resolution", |ui| {
+                        self.res_button(ui, "144p", 144);
+                        self.res_button(ui, "240p", 240);
+                        self.res_button(ui, "360p", 360);
+                        self.res_button(ui, "480p", 480);
+                        self.res_button(ui, "720p", 720);
+                        self.res_button(ui, "1080p", 1080);
+                        self.res_button(ui, "1440p", 1440);
+                        self.res_button(ui, "2160p", 2160);
+                    });
+                    ui.menu_button("Format", |ui| {
+                        self.format_button(ui, "MKV", 1);
+                        self.format_button(ui, "MP4", 2);
+                    });
+                    ui.menu_button("Subtitles", |ui| {
+                        if self.subtitle {
+                            ui.horizontal(|ui| {
+                                ui.label("On/Off: ");
+                                let check = ui.checkbox(&mut self.subtitle, "");
+                                if check.changed() {
+                                    match config::modifier_config(&self.config_path, |cfg| {
+                                        cfg.video_dl.subtitle = Some(self.subtitle)
+                                    }) {
+                                        Ok(_) => {
+                                            log::info!("Subtitle settings successfully changed");
+                                        }
+                                        Err(e) => {
+                                            log::error!("Fail change subtitle {e}");
+                                        }
+                                    }
+                                }
+                            });
+                            let lang_in = self.sub_lang.clone();
+                            self.sub_lang = LangThing::lang_chooser(ui, lang_in);
+                            self.auto_on(ui);
                         } else {
-                            log::info!("No file was selected.");
-                        }
-                    }
-                });
-
-                let radio_toggle = ui.toggle_value(&mut self.disable_radio, "Disable radio");
-                if radio_toggle.changed() {
-                    match config::modifier_config(&self.config_path, |cfg| {
-                        cfg.video_dl.disable_radio = Some(self.disable_radio)
-                    }) {
-                        Ok(_) => {
-                            log::info!("Changed disable_radio");
-                        }
-                        Err(e) => {
-                            log::error!("Fail change disable_radio {e}");
-                        }
-                    }
-                }
-                ui.menu_button("Resolution", |ui| {
-                    self.res_button(ui, "144p", 144);
-                    self.res_button(ui, "240p", 240);
-                    self.res_button(ui, "360p", 360);
-                    self.res_button(ui, "480p", 480);
-                    self.res_button(ui, "720p", 720);
-                    self.res_button(ui, "1080p", 1080);
-                    self.res_button(ui, "1440p", 1440);
-                    self.res_button(ui, "2160p", 2160);
-                });
-                ui.menu_button("Format", |ui| {
-                    self.format_button(ui, "MKV", 1);
-                    self.format_button(ui, "MP4", 2);
-                });
-                ui.menu_button("Subtitles", |ui| {
-                    if self.subtitle {
-                        ui.horizontal(|ui| {
-                            ui.label("On/Off: ");
-                            let check = ui.checkbox(&mut self.subtitle, "");
-                            if check.changed() {
-                                match config::modifier_config(&self.config_path, |cfg| {
-                                    cfg.video_dl.subtitle = Some(self.subtitle)
-                                }) {
-                                    Ok(_) => {
-                                        log::info!("Subtitle settings successfully changed");
-                                    }
-                                    Err(e) => {
-                                        log::error!("Fail change subtitle {e}");
+                            ui.horizontal(|ui| {
+                                ui.label("On/Off: ");
+                                let check = ui.checkbox(&mut self.subtitle, "");
+                                if check.changed() {
+                                    match config::modifier_config(&self.config_path, |cfg| {
+                                        cfg.video_dl.subtitle = Some(self.subtitle)
+                                    }) {
+                                        Ok(_) => {
+                                            log::info!("Changed subtitle");
+                                        }
+                                        Err(e) => {
+                                            log::error!("Fail change subtitle {e}");
+                                        }
                                     }
                                 }
-                            }
-                        });
-                        let lang_in = self.sub_lang.clone();
-                        self.sub_lang = LangThing::lang_chooser(ui, lang_in);
-                        self.auto_on(ui);
-                    } else {
-                        ui.horizontal(|ui| {
-                            ui.label("On/Off: ");
-                            let check = ui.checkbox(&mut self.subtitle, "");
-                            if check.changed() {
-                                match config::modifier_config(&self.config_path, |cfg| {
-                                    cfg.video_dl.subtitle = Some(self.subtitle)
-                                }) {
-                                    Ok(_) => {
-                                        log::info!("Changed subtitle");
-                                    }
-                                    Err(e) => {
-                                        log::error!("Fail change subtitle {e}");
-                                    }
-                                }
-                            }
-                        });
-                    }
-                });
+                            });
+                        }
+                    });
 
-                let c =
-                    ui.add(egui::widgets::Slider::new(&mut self.frag, 1..=10).text("Fragments"));
-                if c.changed() {
-                    match config::modifier_config(&self.config_path, |cfg| {
-                        cfg.video_dl.fragments = Some(self.frag)
-                    }) {
-                        Ok(_) => {
-                            log::info!("Fragment settings successfully changed");
-                        }
-                        Err(e) => {
-                            log::error!("Fail change fragment {e}");
+                    let c = ui
+                        .add(egui::widgets::Slider::new(&mut self.frag, 1..=10).text("Fragments"));
+                    if c.changed() {
+                        match config::modifier_config(&self.config_path, |cfg| {
+                            cfg.video_dl.fragments = Some(self.frag)
+                        }) {
+                            Ok(_) => {
+                                log::info!("Fragment settings successfully changed");
+                            }
+                            Err(e) => {
+                                log::error!("Fail change fragment {e}");
+                            }
                         }
                     }
-                }
-                if ui.button("Close").clicked() {}
-            });
+                    if ui.button("Close").clicked() {}
+                });
             ui.label("Status: ");
             if self.status.load(Ordering::Relaxed) == 1 {
                 ui.spinner();
