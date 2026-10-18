@@ -180,16 +180,40 @@ impl Ffmpeg {
                         } else if AUDIO_FORMAT.contains(&&self.format_out.as_ref()) {
                             self.toggle_compression(
                                 ui,
-                                "bitrate compression",
+                                "Bitrate compression",
                                 FFmpegCompression::AudioBitrate(128),
                             );
                             if let FFmpegCompression::AudioBitrate(value) = &mut self.compression {
                                 ui.add(
                                     egui::widgets::Slider::new(value, 16..=128)
-                                        .text("bitrate: ")
+                                        .text("Bitrate: ")
                                         .step_by(16.0),
                                 )
                                 .on_hover_text("smaller is lower quality and more compression");
+                            }
+                        } else if self.format_out == "webp" {
+                            self.toggle_compression(
+                                ui,
+                                "Webp compression",
+                                FFmpegCompression::WebpCompression(65, 6),
+                            );
+                            if let FFmpegCompression::WebpCompression(quality, compression) =
+                                &mut self.compression
+                            {
+                                ui.add(
+                                    egui::widgets::Slider::new(quality, 0..=100)
+                                        .text("Quality: ")
+                                        .step_by(1.0),
+                                )
+                                .on_hover_text("smaller is lower quality and more compression");
+                                ui.add(
+                                    egui::widgets::Slider::new(compression, 0..=6)
+                                        .text("Compression level: ")
+                                        .step_by(1.0),
+                                )
+                                .on_hover_text(
+                                    "bigger number is small size, there is no quality effect",
+                                );
                             }
                         } else {
                             ui.label("NONE");
@@ -383,6 +407,15 @@ fn ffmpeg_cli(
         FFmpegCompression::PngCompression(cfg) => {
             cli_build.arg("-compression_level").arg(format!("{}", cfg));
         }
+        FFmpegCompression::WebpCompression(quality, compression_effort) => {
+            cli_build
+                .arg("-c:v")
+                .arg("libwebp")
+                .arg("-compression_level")
+                .arg(format!("{}", compression_effort))
+                .arg("-quality")
+                .arg(format!("{}", quality));
+        }
         FFmpegCompression::None => {}
     }
 
@@ -405,5 +438,6 @@ enum FFmpegCompression {
     JpgCompression(u8),
     PngCompression(u8),
     AudioBitrate(u8),
+    WebpCompression(u8, u8),
     None,
 }
