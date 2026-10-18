@@ -25,6 +25,8 @@ pub struct Ffmpeg {
     pub format_in: String,
     pub format_out: String,
     pub input_file: String,
+    pub output_width: String,
+    pub output_height: String,
     compression: FFmpegCompression,
     error_message: Arc<Mutex<String>>,
 }
@@ -37,6 +39,8 @@ impl Default for Ffmpeg {
             status: Arc::new(AtomicI8::new(0)), // 0 = nothing / 1 = pending / 2 = Done / 3 = Fail
             format_in: String::new(),
             format_out: String::from("None"),
+            output_width: String::new(),
+            output_height: String::new(),
             compression: FFmpegCompression::None,
             error_message: Arc::new(Mutex::new(String::new())),
         }
@@ -89,86 +93,103 @@ impl Ffmpeg {
     }
     pub fn ui(&mut self, ui: &mut egui::Ui, depen: &Depen) {
         ui.horizontal(|ui| {
-            ui.menu_button("Configure output", |ui| {
-                ui.horizontal_wrapped(|ui| {
-                    ui.label("Format: ");
-                    ui.menu_button(self.format_out.clone(), |ui| {
-                        if AUDIO_FORMAT.contains(&self.format_in.as_str()) {
-                            for format in AUDIO_FORMAT {
-                                self.format_out_button(ui, format);
+            egui::containers::menu::MenuButton::new("Configure output")
+                .config(
+                    egui::containers::menu::MenuConfig::new()
+                        .close_behavior(egui::PopupCloseBehavior::IgnoreClicks),
+                )
+                .ui(ui, |ui| {
+                    ui.horizontal_wrapped(|ui| {
+                        ui.label("Format: ");
+                        ui.menu_button(self.format_out.clone(), |ui| {
+                            if AUDIO_FORMAT.contains(&self.format_in.as_str()) {
+                                for format in AUDIO_FORMAT {
+                                    self.format_out_button(ui, format);
+                                }
+                            } else if VIDEO_FORMAT.contains(&self.format_in.as_str()) {
+                                for format in VIDEO_FORMAT {
+                                    self.format_out_button(ui, format);
+                                }
+                            } else if IMAGE_FORMAT.contains(&self.format_in.as_str()) {
+                                for format in IMAGE_FORMAT {
+                                    self.format_out_button(ui, format);
+                                }
+                            } else {
+                                self.format_out_button(ui, "Choose media first");
                             }
-                        } else if VIDEO_FORMAT.contains(&self.format_in.as_str()) {
-                            for format in VIDEO_FORMAT {
-                                self.format_out_button(ui, format);
-                            }
-                        } else if IMAGE_FORMAT.contains(&self.format_in.as_str()) {
-                            for format in IMAGE_FORMAT {
-                                self.format_out_button(ui, format);
-                            }
-                        } else {
-                            self.format_out_button(ui, "Choose media first");
-                        }
+                        });
                     });
-                });
-                ui.menu_button("Compression", |ui| {
-                    if self.format_in == "png" && self.format_out == "png" {
-                        self.toggle_compression(
-                            ui,
-                            "Png compression",
-                            FFmpegCompression::PngCompression(100),
-                        );
-                        if let FFmpegCompression::PngCompression(value) = &mut self.compression {
-                            ui.add(
+                    ui.menu_button("Compression", |ui| {
+                        if self.format_in == "png" && self.format_out == "png" {
+                            self.toggle_compression(
+                                ui,
+                                "Png compression",
+                                FFmpegCompression::PngCompression(100),
+                            );
+                            if let FFmpegCompression::PngCompression(value) = &mut self.compression
+                            {
+                                ui.add(
                                 egui::widgets::Slider::new(value, 0..=100)
                                     .text("Percentage quality: "),
                             )
                             .on_hover_text(
                                 "percentage of compression from 0% to 100%, more is less file size",
                             );
+                            }
+                        } else if self.format_out == "jpg" || self.format_out == "jpeg" {
+                            self.toggle_compression(
+                                ui,
+                                "Jpg compression",
+                                FFmpegCompression::JpgCompression(3),
+                            );
+                            if let FFmpegCompression::JpgCompression(value) = &mut self.compression
+                            {
+                                ui.add(
+                                    egui::widgets::Slider::new(value, 1..=100)
+                                        .text("Compression level: "),
+                                )
+                                .on_hover_text("Bigger is more compression");
+                            }
+                        } else if VIDEO_FORMAT.contains(&self.format_out.as_ref()) {
+                            self.toggle_compression(
+                                ui,
+                                "libx264 compression",
+                                FFmpegCompression::Libx264(23),
+                            );
+                            if let FFmpegCompression::Libx264(value) = &mut self.compression {
+                                ui.add(
+                                    egui::widgets::Slider::new(value, 1..=100)
+                                        .text("Compression level: "),
+                                )
+                                .on_hover_text("Bigger is more compression");
+                            }
+                        } else if AUDIO_FORMAT.contains(&&self.format_out.as_ref()) {
+                            self.toggle_compression(
+                                ui,
+                                "bitrate compression",
+                                FFmpegCompression::AudioBitrate(128),
+                            );
+                            if let FFmpegCompression::AudioBitrate(value) = &mut self.compression {
+                                ui.add(
+                                    egui::widgets::Slider::new(value, 16..=128)
+                                        .text("bitrate: ")
+                                        .step_by(16.0),
+                                )
+                                .on_hover_text("smaller is lower quality and more compression");
+                            }
                         }
-                    } else if self.format_out == "jpg" || self.format_out == "jpeg" {
-                        self.toggle_compression(
-                            ui,
-                            "Jpg compression",
-                            FFmpegCompression::JpgCompression(3),
-                        );
-                        if let FFmpegCompression::JpgCompression(value) = &mut self.compression {
-                            ui.add(
-                                egui::widgets::Slider::new(value, 1..=100)
-                                    .text("Compression level: "),
-                            )
-                            .on_hover_text("Bigger is more compression");
-                        }
-                    } else if VIDEO_FORMAT.contains(&self.format_out.as_ref()) {
-                        self.toggle_compression(
-                            ui,
-                            "libx264 compression",
-                            FFmpegCompression::Libx264(23),
-                        );
-                        if let FFmpegCompression::Libx264(value) = &mut self.compression {
-                            ui.add(
-                                egui::widgets::Slider::new(value, 1..=100)
-                                    .text("Compression level: "),
-                            )
-                            .on_hover_text("Bigger is more compression");
-                        }
-                    } else if AUDIO_FORMAT.contains(&&self.format_out.as_ref()) {
-                        self.toggle_compression(
-                            ui,
-                            "bitrate compression",
-                            FFmpegCompression::AudioBitrate(128),
-                        );
-                        if let FFmpegCompression::AudioBitrate(value) = &mut self.compression {
-                            ui.add(
-                                egui::widgets::Slider::new(value, 16..=128)
-                                    .text("bitrate: ")
-                                    .step_by(16.0),
-                            )
-                            .on_hover_text("smaller is lower quality and more compression");
-                        }
-                    }
+                    });
+                    // if !AUDIO_FORMAT.contains(&self.format_in.as_str())
+                    //     && !self.input_file.is_empty()
+                    // {
+                    //     ui.horizontal_wrapped(|ui| {
+                    //         ui.label("Resize: ");
+                    //         ui.text_edit_singleline(&mut self.output_width);
+                    //         ui.label("/");
+                    //         ui.text_edit_singleline(&mut self.output_height);
+                    //     });
+                    // }
                 });
-            });
         });
         ui.separator();
         ui.vertical_centered(|ui| {

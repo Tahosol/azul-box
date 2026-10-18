@@ -198,7 +198,12 @@ impl MusicDownload {
             self.lyrics = false;
         }
         ui.horizontal(|ui| {
-            ui.menu_button("Setting", |ui| {
+            egui::containers::menu::MenuButton::new("Setting")
+                .config(
+                    egui::containers::menu::MenuConfig::new()
+                        .close_behavior(egui::PopupCloseBehavior::IgnoreClicks),
+                )
+                .ui(ui, |ui| {
                 ui.menu_button("cookies", |ui| {
                     let check = ui.checkbox(&mut self.use_cookies, "Use cookies");
                     if check.changed() {
