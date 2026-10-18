@@ -64,6 +64,18 @@
   </branding>
 
   <releases>
+      <release version="v0.4.0" date="2026-6-03">
+        <url
+                    type="details"
+                >https://codeberg.org/Tahoso/azul-box/releases/tag/v0.4.0</url>
+        <description>
+            <ul>
+              <li>Fix ffmpeg related bug</li>
+              <li>Add option to resize image/video</li>
+              <li>improve UI</li>
+            </ul>
+        </description>
+        </release>
   <release version="v0.3.11" date="2026-6-03">
     <url
                 type="details"
