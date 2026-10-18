@@ -287,14 +287,6 @@ impl VideoDownload {
                     }
                     if ui.button("Close").clicked() {}
                 });
-            ui.label("Status: ");
-            if self.status.load(Ordering::Relaxed) == 1 {
-                ui.spinner();
-            } else if self.status.load(Ordering::Relaxed) == 2 {
-                ui.colored_label(Color32::LIGHT_GREEN, "Done!");
-            } else if self.status.load(Ordering::Relaxed) == 3 {
-                ui.colored_label(Color32::LIGHT_RED, "Fail!");
-            }
         });
         ui.separator();
         ui.vertical_centered(|ui| {
@@ -377,6 +369,9 @@ impl VideoDownload {
                         let _ = Command::new("pkill").arg("yt-dlp").output();
                     }
                 }
+                ui.spacing();
+                ui.separator();
+                ui.spinner();
             }
             if self.status.load(Ordering::Relaxed) == 1 {
                 if let Some(file) = files::file_finder_no_name(&self.out_directory, &["part"]) {
@@ -415,6 +410,10 @@ impl VideoDownload {
                                 .size(16.0),
                         );
                     });
+            } else if self.status.load(Ordering::Relaxed) == 2 {
+                ui.spacing();
+                ui.separator();
+                ui.colored_label(Color32::LIGHT_GREEN, "Done!");
             }
         });
     }
