@@ -39,8 +39,8 @@ impl Default for Ffmpeg {
             status: Arc::new(AtomicI8::new(0)), // 0 = nothing / 1 = pending / 2 = Done / 3 = Fail
             format_in: String::new(),
             format_out: String::from("None"),
-            output_width: String::new(),
-            output_height: String::new(),
+            output_width: String::from("-2"),
+            output_height: String::from("-2"),
             compression: FFmpegCompression::None,
             error_message: Arc::new(Mutex::new(String::new())),
         }
@@ -179,16 +179,24 @@ impl Ffmpeg {
                             }
                         }
                     });
-                    // if !AUDIO_FORMAT.contains(&self.format_in.as_str())
-                    //     && !self.input_file.is_empty()
-                    // {
-                    //     ui.horizontal_wrapped(|ui| {
-                    //         ui.label("Resize: ");
-                    //         ui.text_edit_singleline(&mut self.output_width);
-                    //         ui.label("/");
-                    //         ui.text_edit_singleline(&mut self.output_height);
-                    //     });
-                    // }
+                    if !AUDIO_FORMAT.contains(&self.format_in.as_str())
+                        && !self.input_file.is_empty()
+                    {
+                        ui.horizontal_wrapped(|ui| {
+                            ui.label("Resize: ");
+                            ui.add(
+                                egui::TextEdit::singleline(&mut self.output_width)
+                                    .desired_width(60.0),
+                            )
+                            .on_hover_text("width: -2 keeps the original ratio");
+                            ui.label("/");
+                            ui.add(
+                                egui::TextEdit::singleline(&mut self.output_height)
+                                    .desired_width(60.0),
+                            )
+                            .on_hover_text("height: -2 keeps the original ratio");
+                        });
+                    }
                 });
         });
         ui.separator();
@@ -251,9 +259,12 @@ impl Ffmpeg {
                     let ffmpeg = depen.ffmpeg.clone();
                     let compression = self.compression.clone();
                     let error_message_clone = Arc::clone(&self.error_message);
+                    let w = self.output_width.clone();
+                    let h = self.output_height.clone();
 
                     tokio::task::spawn(async move {
-                        match ffmpeg_cli(&input, directory, format_out, ffmpeg, compression) {
+                        match ffmpeg_cli(&input, directory, format_out, ffmpeg, compression, &w, &h)
+                        {
                             Ok(_) => {
                                 progress.store(2, Ordering::Relaxed);
                                 let _ = done_sound("ffmpeg convertor", input);
@@ -316,6 +327,8 @@ fn ffmpeg_cli(
     format_out: String,
     ffmpeg: Option<PathBuf>,
     compression: FFmpegCompression,
+    width: &str,
+    height: &str,
 ) -> Result<(), Box<dyn Error>> {
     if input.is_empty() {
         return Err("No input".into());
@@ -333,6 +346,9 @@ fn ffmpeg_cli(
 
     let mut cli_build = Command::new(ffmpeg_bin);
     cli_build.arg("-i").arg(&input).arg("-q:v").arg("100");
+    if width != "-2" || height != "-2" {
+        cli_build.arg("-vf").arg(format!("scale={width}:{height}"));
+    }
 
     match compression {
         FFmpegCompression::Libx264(cfg) => {
