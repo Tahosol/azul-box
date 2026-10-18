@@ -57,22 +57,34 @@ impl Ffmpeg {
         atoms: &str,
         compression: FFmpegCompression,
     ) {
-        match self.compression {
-            FFmpegCompression::PngCompression(_) => {
-                if ui
-                    .add(egui::Button::new(
-                        egui::RichText::new(atoms).color(Color32::LIGHT_BLUE),
-                    ))
-                    .clicked()
-                {
-                    self.compression = FFmpegCompression::None;
-                };
-            }
-            _ => {
-                if ui.button(atoms).clicked() {
-                    self.compression = compression;
-                }
-            }
+        let is_selected = matches!(
+            (&self.compression, &compression),
+            (
+                FFmpegCompression::PngCompression(_),
+                FFmpegCompression::PngCompression(_)
+            ) | (
+                FFmpegCompression::JpgCompression(_),
+                FFmpegCompression::JpgCompression(_)
+            ) | (FFmpegCompression::Libx264(_), FFmpegCompression::Libx264(_))
+                | (
+                    FFmpegCompression::AudioBitrate(_),
+                    FFmpegCompression::AudioBitrate(_)
+                )
+        );
+        let response = if is_selected {
+            ui.add(egui::Button::new(
+                egui::RichText::new(atoms).color(Color32::LIGHT_BLUE),
+            ))
+        } else {
+            ui.button(atoms)
+        };
+
+        if response.clicked() {
+            self.compression = if is_selected {
+                FFmpegCompression::None
+            } else {
+                compression
+            };
         }
     }
     fn format_out_button(&mut self, ui: &mut egui::Ui, name: &str) {
