@@ -67,7 +67,10 @@ use lofty::probe::Probe;
 use lofty::tag::Tag;
 use std::io::{BufReader, Cursor};
 
-fn embed_img_internal(cover: &Vec<u8>, musicfile: &Path) -> Result<(), lofty::error::LoftyError> {
+fn embed_img_internal(
+    cover: &Vec<u8>,
+    musicfile: &Path,
+) -> Result<(), lofty::error::FileParseError> {
     let mut reader = BufReader::new(Cursor::new(cover));
     let mut tagged_file = Probe::open(musicfile)?.read()?;
 
@@ -86,10 +89,17 @@ fn embed_img_internal(cover: &Vec<u8>, musicfile: &Path) -> Result<(), lofty::er
             }
         }
     };
-    let mut picture = Picture::from_reader(&mut reader)?;
-    picture.set_pic_type(PictureType::CoverFront);
 
-    tag.push_picture(picture);
+    match Picture::from_reader(&mut reader) {
+        Ok(mut picture) => {
+            picture.set_pic_type(PictureType::CoverFront);
+
+            tag.push_picture(picture);
+        }
+        Err(e) => {
+            log::error!("Cover report: Fail to get Piture from reader => {e}");
+        }
+    }
 
     if tag.save_to_path(musicfile, WriteOptions::default()).is_ok() {
         log::info!("Cover report: Embedded Success");
