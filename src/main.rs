@@ -256,7 +256,7 @@ impl eframe::App for MainApp {
 
                         if ui
                             .button("Update")
-                            .on_hover_text("Update yt-dlp and deno")
+                            .on_hover_text("Update yt-dlp and QuickJS")
                             .clicked()
                         {
                             if !self
@@ -346,7 +346,7 @@ impl eframe::App for MainApp {
             egui::CentralPanel::default().show(ui, |ui| {
                 ui.spinner();
                 ui.label("Downloading dependencies");
-                file_status(ui, &self.app_data.deno_zip);
+                file_status(ui, &self.app_data.js_runtime);
                 file_status(ui, &self.app_data.yt_dlp);
                 if let Some(file) = &self.app_data.ffmpeg_zip {
                     file_status(ui, file);

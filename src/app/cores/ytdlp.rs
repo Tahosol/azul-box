@@ -37,9 +37,10 @@ pub fn video_download(
         yt.arg("--cookies").arg(cookie);
     }
 
-    let deno_path = get_path().deno;
-    if let Some(deno) = deno_path.to_str() {
-        yt.arg("--js-runtimes").arg(format!("deno:{}", deno));
+    let js_runtime_path = get_path().js_runtime;
+    if let Some(js_runtime) = js_runtime_path.to_str() {
+        yt.arg("--js-runtimes")
+            .arg(format!("quickjs:{}", js_runtime));
     }
 
     yt.arg("--concurrent-fragments")
@@ -190,9 +191,10 @@ impl Music {
         {
             yt.arg("--cookies").arg(cookie);
         }
-        let deno_path = get_path().deno;
-        if let Some(deno) = deno_path.to_str() {
-            yt.arg("--js-runtimes").arg(format!("deno:{}", deno));
+        let js_runtime_path = get_path().js_runtime;
+        if let Some(js_runtime) = js_runtime_path.to_str() {
+            yt.arg("--js-runtimes")
+                .arg(format!("quickjs:{}", js_runtime));
         }
 
         yt.arg("--concurrent-fragments")
@@ -227,6 +229,11 @@ impl Music {
         match url_checker::playlist_check(&self.link) {
             url_checker::UrlStatus::Playlist => {
                 let mut yt_x = Command::new(&self.yt_dlp);
+                let js_runtime_path = get_path().js_runtime;
+                if let Some(js_runtime) = js_runtime_path.to_str() {
+                    yt_x.arg("--js-runtimes")
+                        .arg(format!("quickjs:{}", js_runtime));
+                }
                 yt_x.arg("--skip-download")
                     .arg("--write-info-json")
                     .arg("--playlist-items")

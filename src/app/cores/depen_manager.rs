@@ -12,40 +12,40 @@ use crate::USERAGENT;
 pub struct Depen {
     pub app_data: PathBuf,
     pub yt_dlp: PathBuf,
-    pub deno: PathBuf,
+    pub js_runtime: PathBuf,
     pub version: PathBuf,
     pub ffmpeg: Option<PathBuf>,
-    pub deno_zip: PathBuf,
     pub ffmpeg_zip: Option<PathBuf>,
 }
 
 pub fn get_path() -> Depen {
     let data = dirs::data_local_dir().unwrap().join("azulbox");
-    if OS == "linux" {
+    #[cfg(target_os = "linux")]
+    {
         Depen {
             app_data: data.clone(),
             #[cfg(target_arch = "aarch64")]
             yt_dlp: data.join("yt-dlp_linux_aarch64"),
-            #[cfg(target_arch = "aarch64")]
-            deno_zip: data.join("deno-aarch64-unknown-linux-gnu.zip"),
             #[cfg(target_arch = "x86_64")]
             yt_dlp: data.join("yt-dlp_linux"),
+            #[cfg(target_arch = "aarch64")]
+            js_runtime: data.join("qjs-linux-aarch64"),
             #[cfg(target_arch = "x86_64")]
-            deno_zip: data.join("deno-x86_64-unknown-linux-gnu.zip"),
-            deno: data.join("deno"),
+            js_runtime: data.join("qjs-linux-x86_64"),
             ffmpeg_zip: None,
             version: data.join("version.json"),
             ffmpeg: None,
         }
-    } else {
+    }
+    #[cfg(target_os = "windows")]
+    {
         Depen {
             app_data: data.clone(),
             yt_dlp: data.join("yt-dlp.exe"),
-            deno: data.join("deno.exe"),
+            js_runtime: data.join("qjs-windows-x86.exe"),
             version: data.join("version.json"),
             ffmpeg: Some(data.join("ffmpeg.exe")),
             ffmpeg_zip: Some(data.join("ffmpeg-master-latest-win64-gpl.zip")),
-            deno_zip: data.join("deno-x86_64-pc-windows-msvc.zip"),
         }
     }
 }
@@ -200,29 +200,36 @@ fn ffmpeg_install(dir: &Path, github: &GithubRelease) -> Result<GithubRelease, B
     Ok(github.clone())
 }
 
-fn deno_install(dir: &Path, github: &GithubRelease) -> Result<GithubRelease, Box<dyn Error>> {
-    let file = match OS {
-        "linux" => {
-            #[cfg(target_arch = "aarch64")]
-            {
-                "deno-aarch64-unknown-linux-gnu.zip"
-            }
-            #[cfg(target_arch = "x86_64")]
-            {
-                "deno-x86_64-unknown-linux-gnu.zip"
-            }
+fn js_runtime_install(dir: &Path, github: &GithubRelease) -> Result<GithubRelease, Box<dyn Error>> {
+    let file = if OS == "linux" {
+        #[cfg(target_arch = "aarch64")]
+        {
+            "qjs-linux-aarch64"
         }
-        "windows" => "deno-x86_64-pc-windows-msvc.zip",
-        _ => return Err("Wrong OS".into()),
+        #[cfg(target_arch = "x86_64")]
+        {
+            "qjs-linux-x86_64"
+        }
+        #[cfg(not(any(target_arch = "aarch64", target_arch = "x86_64")))]
+        {
+            return Err("Unsupported Linux architecture".into());
+        }
+    } else if OS == "windows" {
+        "qjs-windows-x86.exe"
+    } else {
+        return Err("Wrong OS".into());
     };
-    for asset in &github.assets {
-        if asset.name == file {
-            download_file(file, dir, &asset.browser_download_url, &asset.digest)?
-        }
+    let asset = github
+        .assets
+        .iter()
+        .find(|asset| asset.name == file)
+        .ok_or_else(|| format!("QuickJS release asset not found: {file}"))?;
+    download_file(file, dir, &asset.browser_download_url, &asset.digest)?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(dir.join(file), fs::Permissions::from_mode(0o755))?;
     }
-    let zipfile = dir.join(file);
-    unzip(&zipfile)?;
-    fs::remove_file(zipfile)?;
     Ok(github.clone())
 }
 
@@ -237,20 +244,23 @@ pub fn install(dir: &Path) -> Result<(), Box<dyn Error>> {
         get_github_release("https://api.github.com/repos/yt-dlp/FFmpeg-Builds/releases/latest")?;
     log::info!("ffmpeg_github {ffmpeg_github}");
 
-    let deno_github =
-        get_github_release("https://api.github.com/repos/denoland/deno/releases/latest")?;
-    log::info!("deno_github {deno_github}");
+    let js_runtime_github =
+        get_github_release("https://api.github.com/repos/quickjs-ng/quickjs/releases/latest")?;
+    log::info!("quickjs_github {js_runtime_github}");
 
     match fs::read_to_string(&saved_data_location) {
         Ok(data) => {
             let mut data_struct: VersionJson = serde_json::from_str(&data)?;
-            if data_struct.deno != deno_github.name {
+            if data_struct.js_runtime != js_runtime_github.name || !get_path().js_runtime.exists() {
                 log::info!(
-                    "Update available for Deno from {} to {}",
-                    data_struct.deno,
-                    deno_github.name
+                    "Update available for QuickJS from {} to {}",
+                    data_struct.js_runtime,
+                    js_runtime_github.name
                 );
-                data_struct.deno = deno_install(dir, &deno_github)?.name;
+                data_struct.js_runtime = js_runtime_install(dir, &js_runtime_github)?.name;
+            }
+            if data_struct.yt_dlp != yt_github.name || !get_path().yt_dlp.exists() {
+                data_struct.yt_dlp = yt_dlp_install(dir, &yt_github)?.name;
             }
             if data_struct.ffmpeg != ffmpeg_github.name {
                 log::info!(
@@ -275,7 +285,7 @@ pub fn install(dir: &Path) -> Result<(), Box<dyn Error>> {
             let data = serde_json::to_string(&VersionJson {
                 yt_dlp: yt_dlp_install(dir, &yt_github)?.name,
                 ffmpeg: ffmpeg_install(dir, &ffmpeg_github)?.name,
-                deno: deno_install(dir, &deno_github)?.name,
+                js_runtime: js_runtime_install(dir, &js_runtime_github)?.name,
             })?;
             fs::write(&saved_data_location, data)?;
         }
@@ -287,7 +297,7 @@ pub fn install(dir: &Path) -> Result<(), Box<dyn Error>> {
 struct VersionJson {
     yt_dlp: String,
     ffmpeg: String,
-    deno: String,
+    js_runtime: String,
 }
 impl std::fmt::Display for GithubRelease {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
